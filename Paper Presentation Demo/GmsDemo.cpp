@@ -23,7 +23,7 @@
 //
 // Assumptions:
 //   -- The dog01.jpg and dog02.jpg files are located in the same folder as the executable and are named
-//      Dogs01.jpg and Dogs01.jpg. The opencv_world4120d.dll is built from opencv and opencv_contrib version 4.1.12
+//      Dogs01.jpg and Dogs01.jpg. The opencv_world4120d.dll is built from opencv and opencv_contrib version 4.12.0
 //      and is either in the executable folder or on the system environment path
 // 
 //---------------------------------------------------------------------------
