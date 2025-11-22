@@ -7,10 +7,9 @@
 //	1. Perform local affine (RANSAC-based) refinement on grid-based matches
 //	STEP 1. Create Soure and Destination grids
 //  STEP 2. Discretize feature matches from source into count matrix
-//  STEP 3. sum up row counts and store as last column in count matrix
-//  STEP 4: Identify rows with high enough sums (e.g. matches), run RANSAC to create matrix
-//  STEP 5: Apply matrix to cell center to derive center of target cell
-//  STEP 6: Return filtered inliers
+//  STEP 3: Identify rows with high enough sums (e.g. matches), run RANSAC to create matrix
+//  STEP 4: Apply matrix to cell center to derive center of target cell
+//  STEP 5: Return filtered inliers
 // Authors:  Brennan O'Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
@@ -198,7 +197,7 @@ void LATStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 	std::vector<Mat> srcAffineMatrix(numCells);
 	std::vector<int> finalScores(numCells, 0);
 
-	// iterate through source matches and if count > match threshold then create matrix
+	// iterate through source matches and if count >= match threshold then create matrix
 	for (int i = 0; i < numCells; i++)
 	{
 		if (matchesBySrcCell[i].size() > RANSAC_MATCH_THRESHOLD)
@@ -286,7 +285,7 @@ void LATStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 	}
 
 	// -------------------------------------------------------------------
-	// Step 6: Filter Matches that are greater than score threshold and return as inliers
+	// Step 5: Filter Matches that are greater than score threshold and return as inliers
 	// -------------------------------------------------------------------
 	vDMatches.reserve(matchesAll.size());
 
