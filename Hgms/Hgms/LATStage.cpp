@@ -152,20 +152,4 @@ void LATStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 		matchesBySrcCell[srcCell].push_back(i);
 	}
 
-    // ---- QUICK TEST ----
-    int nonZero = 0;
-    for (int i = 0; i < countingMatrix.size(); i++) {
-        if (countingMatrix[i] != 0) nonZero++;
-    }
-    std::cout << "[LAT TEST] Non-zero entries in countingMatrix: " << nonZero << std::endl;
-    
-    for (int c = 0; c < matchesBySrcCell.size(); c++) {
-        if (!matchesBySrcCell[c].empty()) {
-            std::cout << "[LAT TEST] Cell " << c
-                    << " has " << matchesBySrcCell[c].size()
-                    << " matches." << std::endl;
-            break; // only print first non-empty cell to keep output small
-        }
-    }
-
 }
