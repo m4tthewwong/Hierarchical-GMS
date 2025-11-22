@@ -55,7 +55,45 @@ public:
 		const double thresholdFactor);
 
 private:
-	// class identifier 
+	// Const class identifier 
 	static constexpr const char* STAGE_NAME = "LAT";
+
+	// Threshold for determining number of matches before performing RANSAC
+	const int RANSAC_MATCH_THRESHOLD = 50;
+	
+	// Threshold for number of counts that must exist in target cell to keep match
+	const int FINAL_SCORE_THRESHOLD = 5;
+
+	// This 2d array stores the offsets to retrieve the neighborhood counts
+	// based on the predicted target center.
+	// The predicted target center is at (0, 0) and the center of a 3 x 3 array
+	const int NEIGHBORHOOD_CALC_OFFSETS[9][2] = {
+		{-1, -1}, {0, -1}, {1, -1},
+		{-1, 0}, {0, 0}, {1, 0},
+		{-1, 1}, {0, 1}, {1, 1} };
+
+
+	/*----------------------------- getCellIndex -------------------------------
+	* Private method to return index of cell in grid
+	* Preconditions: Instance of LATStage class is instantiated and image 1
+	*				 and 2 keypoints are provided, image1 and 2 sizes are provided,
+	*                image 1 and 2 feature matches are provided, thresholdFactor
+	*                is provided.
+	* Postconditions: Returns index of cell or returns -1 if the point is outside 
+	*                 the image bounds.
+	*/
+	int getCellIndex(const cv::Point2f& pt,
+		const cv::Size& size,
+		const int gridRows,
+		const int gridCols);
+
+	/*----------------------------- calcCellCenter -------------------------------
+	* Private method to calculate the cell center
+	* Preconditions: 
+	* Postconditions:
+	*/	Point2f calcCellCenter(int linearIndex, 
+		const Size& size, 
+		int gridRows, 
+		int gridCols) const;
 
 };
