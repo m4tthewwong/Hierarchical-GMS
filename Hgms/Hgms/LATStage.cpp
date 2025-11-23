@@ -94,14 +94,14 @@ int LATStage::getCellIndex(const cv::Point2f& pt,
 * Preconditions:
 * Postconditions:
 */
-Point2f LATStage::calcCellCenter(int linearIndex, 
+Point2f LATStage::calcCellCenter(int cellIndex, 
 	const Size& size, 
 	int gridRows, 
 	int gridCols) const
 {
 	// Determine the row and column index from the linear index
-	int row = linearIndex / gridCols;
-	int col = linearIndex % gridCols;
+	int row = cellIndex / gridCols;
+	int col = cellIndex % gridCols;
 
 	// Calculate dimensions of a single cell
 	float cellWidth = static_cast<float>(size.width) / static_cast<float>(gridCols);
@@ -262,7 +262,6 @@ void LATStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 			int neighSumScore = 0;
 			for (int neighCellIdx = 0; neighCellIdx < 9; neighCellIdx++)
 			{
-
 				// get the neighborhood cell locations
 				int neighCol = predCellCol + NEIGHBORHOOD_CALC_OFFSETS[neighCellIdx][0];
 				int neighRow = predCellRow + NEIGHBORHOOD_CALC_OFFSETS[neighCellIdx][1];
