@@ -122,6 +122,111 @@ namespace
 
 		return labels;
 	}
+
+    /*----------------------------- filterPlaneMatches ------------------------
+	* Helper for Step 2:
+	* For one plane, perform a simple GMS-like consistency check based on the
+	* distribution of motion vectors in that plane.
+	*
+	* - Compute mean motion for the plane
+	* - Compute standard deviation of motion magnitudes
+	* - Keep matches whose motion is within (stddevFactor * stddev) of the mean
+    * 
+    * For this check, I will be keeping matches with consistent motion in a plane
+    * similar to how GMS keeps matches with consistent motion in a neighborhood.
+	*/
+	void filterPlaneMatches(
+		const std::vector<cv::DMatch>& planeMatches,
+		const std::vector<cv::KeyPoint>& vkp1,
+		const std::vector<cv::KeyPoint>& vkp2,
+		const double thresholdFactor,
+		std::vector<cv::DMatch>& inliersOut)
+	{
+		if (planeMatches.size() < 3)
+		{
+			// Not enough data for meaningful statistics; pass through
+			inliersOut.insert(inliersOut.end(), planeMatches.begin(), planeMatches.end());
+			return;
+		}
+
+		std::vector<Point2f> motions;
+		motions.reserve(planeMatches.size());
+
+		for (const auto& m : planeMatches)
+		{
+			if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
+				m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
+			{
+				continue;
+			}
+
+			Point2f p1 = vkp1[m.queryIdx].pt;
+			Point2f p2 = vkp2[m.trainIdx].pt;
+			motions.emplace_back(p2 - p1);
+		}
+
+		if (motions.size() < 3)
+		{
+			inliersOut.insert(inliersOut.end(), planeMatches.begin(), planeMatches.end());
+			return;
+		}
+
+		// Compute mean motion
+		Point2f mean(0.f, 0.f);
+		for (const auto& mv : motions)
+		{
+			mean.x += mv.x;
+			mean.y += mv.y;
+		}
+		mean.x /= static_cast<float>(motions.size());
+		mean.y /= static_cast<float>(motions.size());
+
+		// Compute variance of motion distance from mean
+		float variance = 0.f;
+		for (const auto& mv : motions)
+		{
+			const float dx = mv.x - mean.x;
+			const float dy = mv.y - mean.y;
+			variance += dx * dx + dy * dy;
+		}
+		variance /= static_cast<float>(motions.size());
+		const float stddev = std::sqrt(std::max(variance, 0.0f));
+
+		// Here I did thresholdFactor / 6.0 because I believe it should be a sort of middle ground
+        // where < 6 where would be looser filtering and > 6 would be stricter filtering.
+		const float baseFactor = 1.5f;
+		const float scale = static_cast<float>(thresholdFactor > 0.0 ? (thresholdFactor / 6.0) : 1.0);
+		const float stddevFactor = baseFactor * scale;
+		const float thresh = stddevFactor * stddev;
+
+		// Apply consistency check
+		inliersOut.reserve(inliersOut.size() + planeMatches.size());
+
+		for (size_t i = 0; i < planeMatches.size(); ++i)
+		{
+			const cv::DMatch& m = planeMatches[i];
+
+			if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
+				m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
+			{
+				continue;
+			}
+
+			Point2f p1 = vkp1[m.queryIdx].pt;
+			Point2f p2 = vkp2[m.trainIdx].pt;
+			Point2f mv = p2 - p1;
+
+			const float dx = mv.x - mean.x;
+			const float dy = mv.y - mean.y;
+			const float dist = std::sqrt(dx * dx + dy * dy);
+
+			// If motion is close to mean motion, treat as inlier
+			if (dist <= thresh || stddev == 0.0f)
+			{
+				inliersOut.push_back(m);
+			}
+		}
+	}
 }
 
 /*----------------------------- default -----------------------------------
@@ -217,7 +322,48 @@ void MPStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 	// Step 2: For each plane, collect matches and run local filtering
 	// ---------------------------------------------------------------------
 
+    std::vector<std::vector<cv::DMatch>> planeMatches(K);
+
+	// Map original matches into planes using labels
+	const size_t labelCount = std::min(matchesAll.size(), labels.size());
+	for (size_t i = 0; i < labelCount; ++i)
+	{
+		const int planeId = labels[i];
+		if (planeId >= 0 && planeId < K)
+		{
+			planeMatches[planeId].push_back(matchesAll[i]);
+		}
+	}
+
+	std::vector<cv::DMatch> aggregatedInliers;
+	for (int plane = 0; plane < K; ++plane)
+	{
+		if (planeMatches[plane].empty())
+		{
+			continue;
+		}
+
+		std::vector<cv::DMatch> planeInliers;
+		filterPlaneMatches(planeMatches[plane], vkp1, vkp2, thresholdFactor, planeInliers);
+
+		aggregatedInliers.insert(
+			aggregatedInliers.end(),
+			planeInliers.begin(),
+			planeInliers.end());
+	}
+
     // ---------------------------------------------------------------------
 	// Step 3: Aggregate inlier matches from all planes and return
 	// ---------------------------------------------------------------------
+    if (!aggregatedInliers.empty())
+	{
+		vDMatches = aggregatedInliers;
+		// Propagate refined matches forward in the pipeline
+		matchesAll = vDMatches;
+	}
+	else
+	{
+		// If nothing survived filtering, fall back to original matches
+		vDMatches = matchesAll;
+	}
 }
