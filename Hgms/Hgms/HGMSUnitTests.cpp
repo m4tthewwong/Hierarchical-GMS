@@ -20,51 +20,11 @@
 //   -- None
 
 #pragma once
-#include <iostream>
-#include <cassert>
-#include <vector>
-#include <random>
-#include <opencv2/core.hpp>
-#include "HGMSPipeline.h"
-#include "HGMSStage.h"
-#include "LATStage.h"
-#include "MPStage.h"
+#include "HGMSUnitTests.h"
 
 using namespace std;
 
-const int RAND_SEED = 42;
-
-void runUnitTests();
-
-// Utility method for generating mock key point data
-std::vector<cv::KeyPoint> generateRandomKP(int num, int seed);
-
-// Utility method for generating mock matches data
-std::vector<cv::DMatch> generateMockMatches(int num);
-
-// Utility method for generating mock image data
-cv::Mat generateMockImages(int width, int height, int type = CV_8UC1);
-
-// validation for initialization
-void validateHGMSPipeline();
-void validateHGMSStageRegistration();
-void validateLATStageRegistration();
-void validateHGMSStageRegistration();
-void validateMPStageRegistration();
-
-// validation for execution using mock data
-void validateAllStageExecution();
-
-
-int main()
-{
-	cout << "Executing HGMS Unit Tests" << endl;
-	runUnitTests();
-
-	return EXIT_SUCCESS;
-}
-
-void runUnitTests()
+void HGMSUnitTests::runUnitTests()
 {
 	// validate stage registration
 	validateHGMSPipeline();
@@ -77,7 +37,7 @@ void runUnitTests()
 
 }
 
-void validateHGMSPipeline()
+void HGMSUnitTests::validateHGMSPipeline()
 {
 	cout << "validateHGMSPipeline" << endl;
 
@@ -94,7 +54,7 @@ void validateHGMSPipeline()
 	cout << execMetrics;
 }
 
-void validateHGMSStageRegistration()
+void HGMSUnitTests::validateHGMSStageRegistration()
 {
 	cout << "validateHGMSStageRegistration" << endl;
 
@@ -115,7 +75,7 @@ void validateHGMSStageRegistration()
 	cout << execMetrics;
 }
 
-void validateLATStageRegistration()
+void HGMSUnitTests::validateLATStageRegistration()
 {
 	cout << "validateLATStageRegistration" << endl;
 
@@ -136,7 +96,7 @@ void validateLATStageRegistration()
 	cout << execMetrics;
 }
 
-void validateMPStageRegistration()
+void HGMSUnitTests::validateMPStageRegistration()
 {
 	cout << "validateMPStageRegistration" << endl;
 
@@ -157,7 +117,7 @@ void validateMPStageRegistration()
 	cout << execMetrics;
 }
 
-void validateAllStageExecution()
+void HGMSUnitTests::validateAllStageExecution()
 {
 	cout << "validateAllStageExecution" << endl;
 	int dataPointNum = 5;
@@ -194,7 +154,7 @@ void validateAllStageExecution()
 	cout << execMetrics;
 }
 
-std::vector<cv::KeyPoint> generateRandomKP(int num, int seed)
+std::vector<cv::KeyPoint> HGMSUnitTests::generateRandomKP(int num, int seed)
 {
 	vector<KeyPoint> keypoints;
 
@@ -210,7 +170,7 @@ std::vector<cv::KeyPoint> generateRandomKP(int num, int seed)
 	return keypoints;
 }
 
-std::vector<cv::DMatch> generateMockMatches(int num)
+std::vector<cv::DMatch> HGMSUnitTests::generateMockMatches(int num)
 {
 	vector<DMatch> matches;
 
@@ -222,7 +182,7 @@ std::vector<cv::DMatch> generateMockMatches(int num)
 	return matches;
 }
 
-cv::Mat generateMockImages(int width, int height, int type)
+cv::Mat HGMSUnitTests::generateMockImages(int width, int height, int type)
 {
 	return Mat::zeros(height, width, type);
 }
