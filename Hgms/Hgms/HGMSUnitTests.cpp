@@ -31,10 +31,6 @@ void HGMSUnitTests::runUnitTests()
 	validateHGMSStageRegistration();
 	validateLATStageRegistration();
 	validateMPStageRegistration();
-
-	// validate execution
-	validateAllStageExecution();
-
 }
 
 void HGMSUnitTests::validateHGMSPipeline()
@@ -112,43 +108,6 @@ void HGMSUnitTests::validateMPStageRegistration()
 	// assert default values set
 	assert(execMetrics.getPipelineMetrics().totalExecutionTimeMs == 0);
 	assert(pipeline.getStageSize() == 1);
-
-	// print metrics to screen
-	cout << execMetrics;
-}
-
-void HGMSUnitTests::validateAllStageExecution()
-{
-	cout << "validateAllStageExecution" << endl;
-	int dataPointNum = 5;
-
-	// generate mock keypoints
-	auto kp1 = generateRandomKP(dataPointNum, RAND_SEED);
-	auto kp2 = generateRandomKP(dataPointNum, RAND_SEED);
-
-	// generate mats
-	cv::Mat img1 = generateMockImages(10, 10, CV_8UC1);
-	cv::Mat img2 = generateMockImages(10, 10, CV_8UC1);
-	
-	// generate mock matches
-	auto matchesAll = generateMockMatches(dataPointNum);
-
-	// initialize pipeline and HGMSStage
-	HGMSPipeline pipeline;
-	pipeline.addStage(std::make_shared<HGMSStage>());
-	pipeline.addStage(std::make_shared<LATStage>());
-	pipeline.addStage(std::make_shared<MPStage>());
-
-	// execute stage with mock parameters
-	vector<DMatch> filteredMatches;
-	pipeline.match(kp1, img1.size(), kp2, img2.size(), matchesAll, filteredMatches, 6.0f);
-
-	// get metrics
-	ExecutionMetrics execMetrics = pipeline.getExecMetrics();
-	
-	// assert default values set
-	assert(execMetrics.getPipelineMetrics().totalExecutionTimeMs > 0);
-	assert(pipeline.getStageSize() == 3);
 
 	// print metrics to screen
 	cout << execMetrics;

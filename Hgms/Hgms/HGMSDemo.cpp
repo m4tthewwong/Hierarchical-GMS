@@ -21,44 +21,49 @@
 
 #pragma once
 
-#include <iostream>
-#include <cassert>
-#include <vector>
-#include <random>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/photo.hpp>
 #include <opencv2/features2d.hpp>
-#include <opencv2/opencv.hpp>
 #include "HGMSUnitTests.h"
-#include "HGMSPipeline.h"
-#include "HGMSStage.h"
-#include "LATStage.h"
-#include "MPStage.h"
 
-void executeHGMSUnitTests();
-void executeHGMSLatPipeline();
+// Constants for window naming
+const string NO_HGMS_WINDOW_NAME = "All Matches No HGMS";
+
+void executeStagePipeline(string windowName, HGMSPipeline pipeline);
 
 int main()
 {
 	// run unit tests
-	//executeHGMSUnitTests();
-
-	// run demo of HGMS with LAT stage
-	executeHGMSLatPipeline();
-	
-	return EXIT_SUCCESS;
-}
-
-void executeUnitTests()
-{
 	HGMSUnitTests unitTests;
 	unitTests.runUnitTests();
 
+	// run demo of HGMS with LAT stage
+	HGMSPipeline latPipeline;
+	latPipeline.addStage(std::make_shared<LATStage>());
+	executeStagePipeline("LAT Filtered Matches", latPipeline);
+
+	// run demo of HGMS with HGMS Stage
+	HGMSPipeline hgmsPipeline;
+	hgmsPipeline.addStage(std::make_shared<HGMSStage>());
+	executeStagePipeline("HGMS Filtered Matches", hgmsPipeline);
+
+	// run demo of HGMS with MP Stage
+	HGMSPipeline mpPipeline;
+	mpPipeline.addStage(std::make_shared<MPStage>());
+	executeStagePipeline("MP Filtered Matches", mpPipeline);
+
+	// run demo of HGMS with all stages registered
+	HGMSPipeline allStagePipeline;
+	allStagePipeline.addStage(std::make_shared<LATStage>());
+	allStagePipeline.addStage(std::make_shared<HGMSStage>());
+	allStagePipeline.addStage(std::make_shared<MPStage>());
+	executeStagePipeline("All Stages Filtered Matches", latPipeline);
+
+	return EXIT_SUCCESS;
 }
 
-void executeHGMSLatPipeline()
+
+void executeStagePipeline(string windowName, HGMSPipeline pipeline)
 {
 	// read images
 	const Mat kittens1 = imread("kittens1.jpg", IMREAD_GRAYSCALE);
@@ -80,11 +85,7 @@ void executeHGMSLatPipeline()
 	std::vector<DMatch> matchesAll;
 	matcher->match(k1d, k2d, matchesAll);
 
-	// initialize pipeline and HGMSStage
-	HGMSPipeline pipeline;
-	pipeline.addStage(std::make_shared<LATStage>());
-
-	// execute stage with mock parameters
+	// execute stage with image parameters
 	vector<DMatch> filteredMatches;
 	pipeline.match(k1kp, kittens1.size(), k2kp, kittens2.size(), matchesAll, filteredMatches, 6.0f);
 
@@ -95,17 +96,16 @@ void executeHGMSLatPipeline()
 	Mat filteredImageMatches;
 	drawMatches(kittens1, k1kp, kittens2, k2kp, filteredMatches, filteredImageMatches);
 	// resize and display matches
-	namedWindow("LAT Filtered Matches", WINDOW_NORMAL);
-	resizeWindow("LAT Filtered Matches", filteredImageMatches.cols / 8, filteredImageMatches.rows / 8);
-	imshow("LAT Filtered Matches", filteredImageMatches);
+	namedWindow(windowName, WINDOW_NORMAL);
+	resizeWindow(windowName, filteredImageMatches.cols / 8, filteredImageMatches.rows / 8);
+	imshow(windowName, filteredImageMatches);
 
 	Mat noFilterMatches;
 	drawMatches(kittens1, k1kp, kittens2, k2kp, matchesAll, noFilterMatches);
 	// create resizeable window with scaling
-	namedWindow("Orig All Matches", WINDOW_NORMAL);
-	resizeWindow("Orig All Matches", noFilterMatches.cols / 8, noFilterMatches.rows / 8);
-	imshow("Orig All Matches", noFilterMatches);
-
+	namedWindow(NO_HGMS_WINDOW_NAME, WINDOW_NORMAL);
+	resizeWindow(NO_HGMS_WINDOW_NAME, noFilterMatches.cols / 8, noFilterMatches.rows / 8);
+	imshow(NO_HGMS_WINDOW_NAME, noFilterMatches);
 
 	// wait for input
 	waitKey();

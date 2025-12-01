@@ -23,6 +23,7 @@
 
 #include <string>
 #include "ProcessingStage.h"
+#include "hgms.hpp"
 
 class HGMSStage : public ProcessingStage {
 public:
