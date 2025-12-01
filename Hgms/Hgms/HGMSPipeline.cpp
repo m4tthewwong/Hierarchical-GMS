@@ -128,9 +128,14 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 	// Initialize the pipeExecMetrics object
 	pipeExecMetrics.initialize();
 
+	// allocate size of vDMatches to max matches * number of stages
+	vDMatches.reserve(matchesAll.size() * pipelineStages.size());
+
 	// Setup timers
 	for (auto& stage : pipelineStages)
 	{
+		std::vector<DMatch> stageMatches(matchesAll.size());
+		
 		if (stage)
 		{
 			// initialize time and execute stage
@@ -138,7 +143,7 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 			tm.start();
 
 			// execute stage
-			stage->execute(vkp1, size1, vkp2, size2, matchesAll, vDMatches, thresholdFactor);
+			stage->execute(vkp1, size1, vkp2, size2, matchesAll, stageMatches, thresholdFactor);
 			
 			// stop timer
 			tm.stop();
@@ -160,6 +165,9 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 			pipeMetrics.totalUniqueMatchesOutputSize = vDMatches.size();
 			pipeExecMetrics.updatePipelineExecMetrics(pipeMetrics);
 		}
+
+		// Insert matches from stage
+		vDMatches.insert(vDMatches.end(), stageMatches.begin(), stageMatches.end());
 	}
 }
 
