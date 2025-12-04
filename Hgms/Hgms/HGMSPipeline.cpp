@@ -29,10 +29,10 @@
 
 /*----------------------------- default ---------------------------------------
 * Default constructor for class HGMSPipeline.
-* Preconditions: none.
+* Preconditions: Processing mode must be provided as input to constructor
 * Postconditions: Initialized HGMSPipeline object with data structures initialized
 */
-HGMSPipeline::HGMSPipeline()
+HGMSPipeline::HGMSPipeline(ProcessingMode mode) : processingMode(mode)
 {
 }
 
@@ -122,7 +122,7 @@ const int HGMSPipeline::getStageSize()
 *                 and save execution metrics
 */
 void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
-	const std::vector<KeyPoint>& vkp2, const Size& size2, std::vector<DMatch>& matchesAll,
+	const std::vector<KeyPoint>& vkp2, const Size& size2, const std::vector<DMatch>& matchesAll,
 	std::vector<DMatch>& vDMatches, const double thresholdFactor)
 {
 	// Initialize the pipeExecMetrics object
@@ -130,6 +130,9 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 
 	// allocate size of vDMatches to max matches * number of stages
 	vDMatches.reserve(matchesAll.size() * pipelineStages.size());
+
+	// create copy of input Matches
+	std::vector<DMatch> inputMatches(matchesAll);
 
 	// Setup timers
 	for (auto& stage : pipelineStages)
@@ -143,7 +146,7 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 			tm.start();
 
 			// execute stage
-			stage->execute(vkp1, size1, vkp2, size2, matchesAll, stageMatches, thresholdFactor);
+			stage->execute(vkp1, size1, vkp2, size2, inputMatches, stageMatches, thresholdFactor);
 			
 			// stop timer
 			tm.stop();
@@ -152,7 +155,7 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 			ExecutionMetrics::StageExecMetrics stageMetrics;
 			stageMetrics.stageName = stage->getStageName();
 			stageMetrics.stageMatchesInputSize = matchesAll.size();
-			stageMetrics.stageMatchesOutputSize = vDMatches.size();
+			stageMetrics.stageMatchesOutputSize = stageMatches.size();
 			stageMetrics.executionTimeMs = tm.getTimeMilli();
 
 			// add execution metrics to collection
@@ -168,6 +171,12 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 
 		// Insert matches from stage
 		vDMatches.insert(vDMatches.end(), stageMatches.begin(), stageMatches.end());
+
+		// Reset inputMatches if processing mode set to filter
+		if (processingMode == FILTER)
+		{
+			inputMatches = stageMatches;
+		}
 	}
 }
 

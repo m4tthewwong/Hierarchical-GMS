@@ -33,31 +33,31 @@ void executeStagePipeline(string windowName, HGMSPipeline pipeline);
 
 int main()
 {
-	// run unit tests
-	HGMSUnitTests unitTests;
-	unitTests.runUnitTests();
+	//// run unit tests
+	//HGMSUnitTests unitTests;
+	//unitTests.runUnitTests();
 
-	// run demo of HGMS with LAT stage
-	HGMSPipeline latPipeline;
-	latPipeline.addStage(std::make_shared<LATStage>());
-	executeStagePipeline("LAT Filtered Matches", latPipeline);
+	//// run demo of HGMS with LAT stage
+	//HGMSPipeline latPipeline(HGMSPipeline::AGGREGATE);
+	//latPipeline.addStage(std::make_shared<LATStage>());
+	//executeStagePipeline("LAT Filtered Matches", latPipeline);
 
-	// run demo of HGMS with HGMS Stage
-	HGMSPipeline hgmsPipeline;
-	hgmsPipeline.addStage(std::make_shared<HGMSStage>());
-	executeStagePipeline("HGMS Filtered Matches", hgmsPipeline);
+	//// run demo of HGMS with HGMS Stage
+	//HGMSPipeline hgmsPipeline(HGMSPipeline::AGGREGATE);
+	//hgmsPipeline.addStage(std::make_shared<HGMSStage>());
+	//executeStagePipeline("HGMS Filtered Matches", hgmsPipeline);
 
-	// run demo of HGMS with MP Stage
-	HGMSPipeline mpPipeline;
-	mpPipeline.addStage(std::make_shared<MPStage>());
-	executeStagePipeline("MP Filtered Matches", mpPipeline);
+	//// run demo of HGMS with MP Stage
+	//HGMSPipeline mpPipeline(HGMSPipeline::AGGREGATE);
+	//mpPipeline.addStage(std::make_shared<MPStage>());
+	//executeStagePipeline("MP Filtered Matches", mpPipeline);
 
 	// run demo of HGMS with all stages registered
-	HGMSPipeline allStagePipeline;
+	HGMSPipeline allStagePipeline(HGMSPipeline::FILTER);
 	allStagePipeline.addStage(std::make_shared<LATStage>());
 	allStagePipeline.addStage(std::make_shared<HGMSStage>());
 	allStagePipeline.addStage(std::make_shared<MPStage>());
-	executeStagePipeline("All Stages Filtered Matches", latPipeline);
+	executeStagePipeline("All Stages Filtered Matches", allStagePipeline);
 
 	return EXIT_SUCCESS;
 }

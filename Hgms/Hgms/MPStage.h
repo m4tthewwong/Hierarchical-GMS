@@ -50,7 +50,7 @@ public:
 	*/
 	virtual void execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 		const std::vector<KeyPoint>& vkp2, const Size& size2,
-		std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches,
+		const std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches,
 		const double thresholdFactor);
 
 private:

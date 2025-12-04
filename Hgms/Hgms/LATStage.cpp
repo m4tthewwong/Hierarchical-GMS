@@ -124,7 +124,7 @@ Point2f LATStage::calcCellCenter(int cellIndex,
 */
 void LATStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 	const std::vector<KeyPoint>& vkp2, const Size& size2,
-	std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches,
+	const std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches,
 	const double thresholdFactor)
 {
     // If there are no matches or insufficient keypoints, nothing to do

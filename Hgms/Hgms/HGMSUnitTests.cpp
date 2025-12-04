@@ -38,7 +38,7 @@ void HGMSUnitTests::validateHGMSPipeline()
 	cout << "validateHGMSPipeline" << endl;
 
 	// initialize pipeline
-	HGMSPipeline pipeline;
+	HGMSPipeline pipeline(HGMSPipeline::AGGREGATE);
 
 	// get metrics
 	ExecutionMetrics execMetrics = pipeline.getExecMetrics();
@@ -55,7 +55,7 @@ void HGMSUnitTests::validateHGMSStageRegistration()
 	cout << "validateHGMSStageRegistration" << endl;
 
 	// initialize pipeline
-	HGMSPipeline pipeline;
+	HGMSPipeline pipeline(HGMSPipeline::AGGREGATE);
 
 	// add hgms stage
 	pipeline.addStage(std::make_shared<HGMSStage>());
@@ -76,7 +76,7 @@ void HGMSUnitTests::validateLATStageRegistration()
 	cout << "validateLATStageRegistration" << endl;
 
 	// initialize pipeline
-	HGMSPipeline pipeline;
+	HGMSPipeline pipeline(HGMSPipeline::AGGREGATE);
 
 	// add hgms stage
 	pipeline.addStage(std::make_shared<LATStage>());
@@ -97,7 +97,7 @@ void HGMSUnitTests::validateMPStageRegistration()
 	cout << "validateMPStageRegistration" << endl;
 
 	// initialize pipeline
-	HGMSPipeline pipeline;
+	HGMSPipeline pipeline(HGMSPipeline::AGGREGATE);
 
 	// add hgms stage
 	pipeline.addStage(std::make_shared<MPStage>());

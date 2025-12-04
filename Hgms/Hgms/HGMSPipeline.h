@@ -29,12 +29,18 @@
 
 class HGMSPipeline {
 public:
+
+	// Flag to allow user to specify if output from one stage should be the input
+	// to the next stage or if each stage receives the same raw inputs and the
+	// outputs are aggregated
+	enum ProcessingMode {FILTER, AGGREGATE};
+
 	/*----------------------------- default -----------------------------------
 	* Default constructor for class HGMSPipeline.
 	* Preconditions: none.
 	* Postconditions: Initialized HGMSPipeline object with data structures initialized
 	*/
-	HGMSPipeline();
+	HGMSPipeline(ProcessingMode processingMode);
 	
 	/*----------------------------- destructor --------------------------------
 	* Destructor for class HGMSPipeline.
@@ -75,7 +81,7 @@ public:
 	*/
 	void match(const std::vector<KeyPoint>& vkp1, const Size& size1, 
 		const std::vector<KeyPoint>& vkp2, const Size& size2, 
-		std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches, 
+		const std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches, 
 		const double thresholdFactor);
 
 	/*----------------------------- getExecMetrics ----------------------------
@@ -88,6 +94,9 @@ public:
 
 private:
 	double mThresholdFactor = 0;
+
+	// Processing Mode for pipeline
+	ProcessingMode processingMode;
 
 	// Data structure that contains all registered stages
 	std::vector<std::shared_ptr<ProcessingStage>> pipelineStages;

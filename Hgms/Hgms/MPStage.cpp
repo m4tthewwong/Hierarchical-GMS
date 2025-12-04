@@ -257,7 +257,7 @@ MPStage::~MPStage()
 */
 void MPStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 	const std::vector<KeyPoint>& vkp2, const Size& size2,
-	std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches,
+	const std::vector<DMatch>& matchesAll, std::vector<DMatch>& vDMatches,
 	const double thresholdFactor)
 {
     // Silence unused warnings for size1/size2
@@ -358,8 +358,6 @@ void MPStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
     if (!aggregatedInliers.empty())
 	{
 		vDMatches = aggregatedInliers;
-		// Propagate refined matches forward in the pipeline
-		matchesAll = vDMatches;
 	}
 	else
 	{
