@@ -6,7 +6,7 @@
 //  1. Segment matches into motion-based image planes
 //  2. For each plane, perform a lightweight GMS-like consistency filtering
 //  3. Aggregate inlier matches from all planes
-// Authors:  Matthew Wong, Brennan O�Reilly, Pranshu Bhardwaj
+// Authors:  Matthew Wong, Brennan O'Reilly, Pranshu Bhardwaj
 //---------------------------------------------------------------------------
 // Inputs:
 //  -- Keypoints for image1 and image2, image sizes, and current match set
@@ -42,192 +42,202 @@ using cv::Point2f;
 using cv::Mat;
 using cv::TermCriteria;
 
-// Anonymous namespace for internal helper functions
-namespace
+
+// ==========================================================================
+//  PRIVATE HELPER FUNCTIONS (formerly anonymous namespace)
+// ==========================================================================
+
+/*----------------------------- computeMotionVectors ----------------------
+* Helper for Step 1:
+* Compute motion vectors (p2 - p1) for each match.
+*/
+std::vector<Point2f> MPStage::computeMotionVectors(
+    const std::vector<cv::KeyPoint>& vkp1,
+    const std::vector<cv::KeyPoint>& vkp2,
+    const std::vector<cv::DMatch>& matches)
 {
-    /*----------------------------- computeMotionVectors ----------------------
-	* Helper for Step 1:
-	* Compute motion vectors (p2 - p1) for each match.
-	*/
-	std::vector<Point2f> computeMotionVectors(
-		const std::vector<cv::KeyPoint>& vkp1,
-		const std::vector<cv::KeyPoint>& vkp2,
-		const std::vector<cv::DMatch>& matches)
-	{
-		std::vector<Point2f> motion;
-		motion.reserve(matches.size());
+    std::vector<Point2f> motion;
+    motion.reserve(matches.size());
 
-		for (const auto& m : matches)
-		{
-			// Safety checks on indices
-			if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
-				m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
-			{
-				continue;
-			}
+    for (const auto& m : matches)
+    {
+        // Safety checks on indices
+        if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
+            m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
+        {
+            continue;
+        }
 
-			Point2f p1 = vkp1[m.queryIdx].pt;
-			Point2f p2 = vkp2[m.trainIdx].pt;
-			motion.emplace_back(p2 - p1);
-		}
+        Point2f p1 = vkp1[m.queryIdx].pt;
+        Point2f p2 = vkp2[m.trainIdx].pt;
+        motion.emplace_back(p2 - p1);
+    }
 
-		return motion;
-	}
-
-	/*----------------------------- clusterMotionVectors ----------------------
-	* Helper for Step 1:
-	* Cluster motion vectors into K planes using k-means.
-	* Returns a label (0..K-1) for each motion vector.
-	*/
-	std::vector<int> clusterMotionVectors(
-		const std::vector<Point2f>& motion,
-		const int K)
-	{
-		std::vector<int> labels;
-
-		if (motion.empty() || K <= 1)
-		{
-			// Single plane (all zeros) if not enough data or K <= 1
-			labels.assign(motion.size(), 0);
-			return labels;
-		}
-
-		const int N = static_cast<int>(motion.size());
-		Mat data(N, 2, CV_32F);
-
-		for (int i = 0; i < N; ++i)
-		{
-			data.at<float>(i, 0) = motion[i].x;
-			data.at<float>(i, 1) = motion[i].y;
-		}
-
-		Mat bestLabels;
-		Mat centers;
-
-		cv::kmeans(
-			data,
-			K,
-			bestLabels,
-			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 50, 0.01),
-			3,
-			cv::KMEANS_PP_CENTERS,
-			centers
-		);
-
-		labels.resize(N);
-		for (int i = 0; i < N; ++i)
-		{
-			labels[i] = bestLabels.at<int>(i, 0);
-		}
-
-		return labels;
-	}
-
-    /*----------------------------- filterPlaneMatches ------------------------
-	* Helper for Step 2:
-	* For one plane, perform a simple GMS-like consistency check based on the
-	* distribution of motion vectors in that plane.
-	*
-	* - Compute mean motion for the plane
-	* - Compute standard deviation of motion magnitudes
-	* - Keep matches whose motion is within (stddevFactor * stddev) of the mean
-    * 
-    * For this check, I will be keeping matches with consistent motion in a plane
-    * similar to how GMS keeps matches with consistent motion in a neighborhood.
-	*/
-	void filterPlaneMatches(
-		const std::vector<cv::DMatch>& planeMatches,
-		const std::vector<cv::KeyPoint>& vkp1,
-		const std::vector<cv::KeyPoint>& vkp2,
-		const double thresholdFactor,
-		std::vector<cv::DMatch>& inliersOut)
-	{
-		if (planeMatches.size() < 3)
-		{
-			// Not enough data for meaningful statistics; pass through
-			inliersOut.insert(inliersOut.end(), planeMatches.begin(), planeMatches.end());
-			return;
-		}
-
-		std::vector<Point2f> motions;
-		motions.reserve(planeMatches.size());
-
-		for (const auto& m : planeMatches)
-		{
-			if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
-				m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
-			{
-				continue;
-			}
-
-			Point2f p1 = vkp1[m.queryIdx].pt;
-			Point2f p2 = vkp2[m.trainIdx].pt;
-			motions.emplace_back(p2 - p1);
-		}
-
-		if (motions.size() < 3)
-		{
-			inliersOut.insert(inliersOut.end(), planeMatches.begin(), planeMatches.end());
-			return;
-		}
-
-		// Compute mean motion
-		Point2f mean(0.f, 0.f);
-		for (const auto& mv : motions)
-		{
-			mean.x += mv.x;
-			mean.y += mv.y;
-		}
-		mean.x /= static_cast<float>(motions.size());
-		mean.y /= static_cast<float>(motions.size());
-
-		// Compute variance of motion distance from mean
-		float variance = 0.f;
-		for (const auto& mv : motions)
-		{
-			const float dx = mv.x - mean.x;
-			const float dy = mv.y - mean.y;
-			variance += dx * dx + dy * dy;
-		}
-		variance /= static_cast<float>(motions.size());
-		const float stddev = std::sqrt(std::max(variance, 0.0f));
-
-		// Here I did thresholdFactor / 6.0 because I believe it should be a sort of middle ground
-        // where < 6 where would be looser filtering and > 6 would be stricter filtering.
-		const float baseFactor = 1.5f;
-		const float scale = static_cast<float>(thresholdFactor > 0.0 ? (thresholdFactor / 6.0) : 1.0);
-		const float stddevFactor = baseFactor * scale;
-		const float thresh = stddevFactor * stddev;
-
-		// Apply consistency check
-		inliersOut.reserve(inliersOut.size() + planeMatches.size());
-
-		for (size_t i = 0; i < planeMatches.size(); ++i)
-		{
-			const cv::DMatch& m = planeMatches[i];
-
-			if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
-				m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
-			{
-				continue;
-			}
-
-			Point2f p1 = vkp1[m.queryIdx].pt;
-			Point2f p2 = vkp2[m.trainIdx].pt;
-			Point2f mv = p2 - p1;
-
-			const float dx = mv.x - mean.x;
-			const float dy = mv.y - mean.y;
-			const float dist = std::sqrt(dx * dx + dy * dy);
-
-			// If motion is close to mean motion, treat as inlier
-			if (dist <= thresh || stddev == 0.0f)
-			{
-				inliersOut.push_back(m);
-			}
-		}
-	}
+    return motion;
 }
+
+
+
+/*----------------------------- clusterMotionVectors ----------------------
+* Helper for Step 1:
+* Cluster motion vectors into K planes using k-means.
+* Returns a label (0..K-1) for each motion vector.
+*/
+std::vector<int> MPStage::clusterMotionVectors(
+    const std::vector<Point2f>& motion,
+    const int K)
+{
+    std::vector<int> labels;
+
+    if (motion.empty() || K <= 1)
+    {
+        // Single plane (all zeros) if not enough data or K <= 1
+        labels.assign(motion.size(), 0);
+        return labels;
+    }
+
+    const int N = static_cast<int>(motion.size());
+    Mat data(N, 2, CV_32F);
+
+    for (int i = 0; i < N; ++i)
+    {
+        data.at<float>(i, 0) = motion[i].x;
+        data.at<float>(i, 1) = motion[i].y;
+    }
+
+    Mat bestLabels;
+    Mat centers;
+
+    cv::kmeans(
+        data,
+        K,
+        bestLabels,
+        TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 50, 0.01),
+        3,
+        cv::KMEANS_PP_CENTERS,
+        centers
+    );
+
+    labels.resize(N);
+    for (int i = 0; i < N; ++i)
+    {
+        labels[i] = bestLabels.at<int>(i, 0);
+    }
+
+    return labels;
+}
+
+
+
+/*----------------------------- filterPlaneMatches ------------------------
+* Helper for Step 2:
+* For one plane, perform a simple GMS-like consistency check based on the
+* distribution of motion vectors in that plane.
+*
+* - Compute mean motion for the plane
+* - Compute standard deviation of motion magnitudes
+* - Keep matches whose motion is within (stddevFactor * stddev) of the mean
+* 
+* For this check, I will be keeping matches with consistent motion in a plane
+* similar to how GMS keeps matches with consistent motion in a neighborhood.
+*/
+void MPStage::filterPlaneMatches(
+    const std::vector<cv::DMatch>& planeMatches,
+    const std::vector<cv::KeyPoint>& vkp1,
+    const std::vector<cv::KeyPoint>& vkp2,
+    const double thresholdFactor,
+    std::vector<cv::DMatch>& inliersOut)
+{
+    if (planeMatches.size() < 3)
+    {
+        // Not enough data for meaningful statistics; pass through
+        inliersOut.insert(inliersOut.end(), planeMatches.begin(), planeMatches.end());
+        return;
+    }
+
+    std::vector<Point2f> motions;
+    motions.reserve(planeMatches.size());
+
+    for (const auto& m : planeMatches)
+    {
+        if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
+            m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
+        {
+            continue;
+        }
+
+        Point2f p1 = vkp1[m.queryIdx].pt;
+        Point2f p2 = vkp2[m.trainIdx].pt;
+        motions.emplace_back(p2 - p1);
+    }
+
+    if (motions.size() < 3)
+    {
+        inliersOut.insert(inliersOut.end(), planeMatches.begin(), planeMatches.end());
+        return;
+    }
+
+    // Compute mean motion
+    Point2f mean(0.f, 0.f);
+    for (const auto& mv : motions)
+    {
+        mean.x += mv.x;
+        mean.y += mv.y;
+    }
+    mean.x /= static_cast<float>(motions.size());
+    mean.y /= static_cast<float>(motions.size());
+
+    // Compute variance of motion distance from mean
+    float variance = 0.f;
+    for (const auto& mv : motions)
+    {
+        const float dx = mv.x - mean.x;
+        const float dy = mv.y - mean.y;
+        variance += dx * dx + dy * dy;
+    }
+    variance /= static_cast<float>(motions.size());
+    const float stddev = std::sqrt(std::max(variance, 0.0f));
+
+    // Here I did thresholdFactor / 6.0 because I believe it should be a sort of middle ground
+    // where < 6 where would be looser filtering and > 6 would be stricter filtering.
+    const float baseFactor = 1.5f;
+    const float scale = static_cast<float>(thresholdFactor > 0.0 ? (thresholdFactor / 6.0) : 1.0);
+    const float stddevFactor = baseFactor * scale;
+    const float thresh = stddevFactor * stddev;
+
+    // Apply consistency check
+    inliersOut.reserve(inliersOut.size() + planeMatches.size());
+
+    for (size_t i = 0; i < planeMatches.size(); ++i)
+    {
+        const cv::DMatch& m = planeMatches[i];
+
+        if (m.queryIdx < 0 || m.queryIdx >= static_cast<int>(vkp1.size()) ||
+            m.trainIdx < 0 || m.trainIdx >= static_cast<int>(vkp2.size()))
+        {
+            continue;
+        }
+
+        Point2f p1 = vkp1[m.queryIdx].pt;
+        Point2f p2 = vkp2[m.trainIdx].pt;
+        Point2f mv = p2 - p1;
+
+        const float dx = mv.x - mean.x;
+        const float dy = mv.y - mean.y;
+        const float dist = std::sqrt(dx * dx + dy * dy);
+
+        // If motion is close to mean motion, treat as inlier
+        if (dist <= thresh || stddev == 0.0f)
+        {
+            inliersOut.push_back(m);
+        }
+    }
+}
+
+
+// ==========================================================================
+//  CLASS CONSTRUCTOR / DESTRUCTOR / EXECUTE
+// ==========================================================================
 
 /*----------------------------- default -----------------------------------
 * Default constructor for class MPStage.
