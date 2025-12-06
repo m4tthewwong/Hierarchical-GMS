@@ -25,6 +25,18 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/features2d.hpp>
 #include "HGMSUnitTests.h"
+#include "VGGBenchmarkRunner.h"
+
+// Constants for determining if unit tests and benchmark tests are run
+// benchmark tests require valid path to VGG affine image/homography dataset
+const bool RUN_UNIT_TESTS = false;
+const bool RUN_BENCHMARK_TESTS = true;
+const string VGG_ROOT_FOLDER_PATH = "C:\\Personal\\School\\UWB\\587\\FinalSource\\VGGImages"; // must be set to valid path if running benchmarks
+// Number of feature matches to calculate for running benchmarks
+const int BENCHMARK_MAX_FEATURES = 10000;
+// Max distance between predicted target and actual target to consider valid match
+const float BENCHMARK_EVAL_THRESHOLD = 3.0;
+
 
 // Constants for window naming
 const string NO_HGMS_WINDOW_NAME = "All Matches No HGMS";
@@ -33,9 +45,52 @@ void executeStagePipeline(string windowName, HGMSPipeline pipeline);
 
 int main()
 {
-	//// run unit tests
-	//HGMSUnitTests unitTests;
-	//unitTests.runUnitTests();
+	// run unit tests and benchmark tests based on setting
+	if (RUN_UNIT_TESTS)
+	{
+		HGMSUnitTests unitTests;
+		unitTests.runUnitTests();
+	}
+
+	if (RUN_BENCHMARK_TESTS)
+	{
+		VGGBenchmarkRunner vggRunner;
+		// run for all affine covariant folders
+		cout << "Bark image dataset:" << std::endl;
+		string barkFolderPath = VGG_ROOT_FOLDER_PATH + "\\bark";
+		vggRunner.run(barkFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		vggRunner.printResults();
+
+		//cout << "Bikes image dataset:" << std::endl;
+		//string bikesFolderPath = VGG_ROOT_FOLDER_PATH + "\\bikes";
+		//vggRunner.run(bikesFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		//vggRunner.printResults();
+
+		//cout << "Graf image dataset:" << std::endl;
+		//string grafFolderPath = VGG_ROOT_FOLDER_PATH + "\\graf";
+		//vggRunner.run(grafFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		//vggRunner.printResults();
+
+		//cout << "Leuven image dataset:" << std::endl;
+		//string leuvenFolderPath = VGG_ROOT_FOLDER_PATH + "\\leuven";
+		//vggRunner.run(leuvenFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		//vggRunner.printResults();
+
+		//cout << "Trees image dataset:" << std::endl;
+		//string treesFolderPath = VGG_ROOT_FOLDER_PATH + "\\trees";
+		//vggRunner.run(treesFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		//vggRunner.printResults();
+
+		//cout << "UBC image dataset:" << std::endl;
+		//string ubcFolderPath = VGG_ROOT_FOLDER_PATH + "\\ubc";
+		//vggRunner.run(ubcFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		//vggRunner.printResults();
+
+		//cout << "Wall image dataset:" << std::endl;
+		//string wallFolderPath = VGG_ROOT_FOLDER_PATH + "\\wall";
+		//vggRunner.run(wallFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		//vggRunner.printResults();
+	}
 
 	//// run demo of HGMS with LAT stage
 	//HGMSPipeline latPipeline(HGMSPipeline::AGGREGATE);
@@ -52,12 +107,12 @@ int main()
 	//mpPipeline.addStage(std::make_shared<MPStage>());
 	//executeStagePipeline("MP Filtered Matches", mpPipeline);
 
-	// run demo of HGMS with all stages registered
-	HGMSPipeline allStagePipeline(HGMSPipeline::FILTER);
-	allStagePipeline.addStage(std::make_shared<LATStage>());
-	allStagePipeline.addStage(std::make_shared<HGMSStage>());
-	allStagePipeline.addStage(std::make_shared<MPStage>());
-	executeStagePipeline("All Stages Filtered Matches", allStagePipeline);
+	//// run demo of HGMS with all stages registered
+	//HGMSPipeline allStagePipeline(HGMSPipeline::FILTER);
+	//allStagePipeline.addStage(std::make_shared<HGMSStage>());
+	//allStagePipeline.addStage(std::make_shared<LATStage>());
+	//allStagePipeline.addStage(std::make_shared<MPStage>());
+	//executeStagePipeline("All Stages Filtered Matches", allStagePipeline);
 
 	return EXIT_SUCCESS;
 }
@@ -81,7 +136,7 @@ void executeStagePipeline(string windowName, HGMSPipeline pipeline)
 
 	// compute matches
 	// Create brute-force matcher to compute matches between descriptors
-	Ptr<BFMatcher> matcher = BFMatcher::create();
+	Ptr<BFMatcher> matcher = BFMatcher::create(cv::NORM_HAMMING, false);
 	std::vector<DMatch> matchesAll;
 	matcher->match(k1d, k2d, matchesAll);
 

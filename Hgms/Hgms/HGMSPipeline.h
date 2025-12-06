@@ -71,7 +71,7 @@ public:
 	* Preconditions: Initialized pipeline object
 	* Postconditions: The number of registered pipeline stages
 	*/
-	const int getStageSize();
+	const size_t getStageSize();
 
 	/*----------------------------- match -------------------------------------
 	* Method to execute stage processing

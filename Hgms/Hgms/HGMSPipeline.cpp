@@ -109,7 +109,7 @@ const bool HGMSPipeline::deleteStage(const std::string stageName)
 * Preconditions: Initialized pipeline object
 * Postconditions: The number of registered pipeline stages
 */
-const int HGMSPipeline::getStageSize()
+const size_t HGMSPipeline::getStageSize()
 {
 	return pipelineStages.size();
 }
