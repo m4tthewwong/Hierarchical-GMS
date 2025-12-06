@@ -30,7 +30,7 @@
 // Constants for determining if unit tests and benchmark tests are run
 // benchmark tests require valid path to VGG affine image/homography dataset
 const bool RUN_UNIT_TESTS = false;
-const bool RUN_BENCHMARK_TESTS = true;
+const bool RUN_BENCHMARK_TESTS = false;
 const string VGG_ROOT_FOLDER_PATH = "C:\\Personal\\School\\UWB\\587\\FinalSource\\VGGImages"; // must be set to valid path if running benchmarks
 // Number of feature matches to calculate for running benchmarks
 const int BENCHMARK_MAX_FEATURES = 10000;
@@ -61,58 +61,58 @@ int main()
 		vggRunner.run(barkFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
 		vggRunner.printResults();
 
-		//cout << "Bikes image dataset:" << std::endl;
-		//string bikesFolderPath = VGG_ROOT_FOLDER_PATH + "\\bikes";
-		//vggRunner.run(bikesFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
-		//vggRunner.printResults();
+		cout << "Bikes image dataset:" << std::endl;
+		string bikesFolderPath = VGG_ROOT_FOLDER_PATH + "\\bikes";
+		vggRunner.run(bikesFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		vggRunner.printResults();
 
-		//cout << "Graf image dataset:" << std::endl;
-		//string grafFolderPath = VGG_ROOT_FOLDER_PATH + "\\graf";
-		//vggRunner.run(grafFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
-		//vggRunner.printResults();
+		cout << "Graf image dataset:" << std::endl;
+		string grafFolderPath = VGG_ROOT_FOLDER_PATH + "\\graf";
+		vggRunner.run(grafFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		vggRunner.printResults();
 
-		//cout << "Leuven image dataset:" << std::endl;
-		//string leuvenFolderPath = VGG_ROOT_FOLDER_PATH + "\\leuven";
-		//vggRunner.run(leuvenFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
-		//vggRunner.printResults();
+		cout << "Leuven image dataset:" << std::endl;
+		string leuvenFolderPath = VGG_ROOT_FOLDER_PATH + "\\leuven";
+		vggRunner.run(leuvenFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		vggRunner.printResults();
 
-		//cout << "Trees image dataset:" << std::endl;
-		//string treesFolderPath = VGG_ROOT_FOLDER_PATH + "\\trees";
-		//vggRunner.run(treesFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
-		//vggRunner.printResults();
+		cout << "Trees image dataset:" << std::endl;
+		string treesFolderPath = VGG_ROOT_FOLDER_PATH + "\\trees";
+		vggRunner.run(treesFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		vggRunner.printResults();
 
-		//cout << "UBC image dataset:" << std::endl;
-		//string ubcFolderPath = VGG_ROOT_FOLDER_PATH + "\\ubc";
-		//vggRunner.run(ubcFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
-		//vggRunner.printResults();
+		cout << "UBC image dataset:" << std::endl;
+		string ubcFolderPath = VGG_ROOT_FOLDER_PATH + "\\ubc";
+		vggRunner.run(ubcFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		vggRunner.printResults();
 
-		//cout << "Wall image dataset:" << std::endl;
-		//string wallFolderPath = VGG_ROOT_FOLDER_PATH + "\\wall";
-		//vggRunner.run(wallFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
-		//vggRunner.printResults();
+		cout << "Wall image dataset:" << std::endl;
+		string wallFolderPath = VGG_ROOT_FOLDER_PATH + "\\wall";
+		vggRunner.run(wallFolderPath, BENCHMARK_MAX_FEATURES, BENCHMARK_EVAL_THRESHOLD);
+		vggRunner.printResults();
 	}
 
-	//// run demo of HGMS with LAT stage
-	//HGMSPipeline latPipeline(HGMSPipeline::AGGREGATE);
-	//latPipeline.addStage(std::make_shared<LATStage>());
-	//executeStagePipeline("LAT Filtered Matches", latPipeline);
+	// run demo of HGMS with LAT stage
+	HGMSPipeline latPipeline(HGMSPipeline::AGGREGATE);
+	latPipeline.addStage(std::make_shared<LATStage>());
+	executeStagePipeline("LAT Filtered Matches", latPipeline);
 
-	//// run demo of HGMS with HGMS Stage
-	//HGMSPipeline hgmsPipeline(HGMSPipeline::AGGREGATE);
-	//hgmsPipeline.addStage(std::make_shared<HGMSStage>());
-	//executeStagePipeline("HGMS Filtered Matches", hgmsPipeline);
+	// run demo of HGMS with HGMS Stage
+	HGMSPipeline hgmsPipeline(HGMSPipeline::AGGREGATE);
+	hgmsPipeline.addStage(std::make_shared<HGMSStage>());
+	executeStagePipeline("HGMS Filtered Matches", hgmsPipeline);
 
-	//// run demo of HGMS with MP Stage
-	//HGMSPipeline mpPipeline(HGMSPipeline::AGGREGATE);
-	//mpPipeline.addStage(std::make_shared<MPStage>());
-	//executeStagePipeline("MP Filtered Matches", mpPipeline);
+	// run demo of HGMS with MP Stage
+	HGMSPipeline mpPipeline(HGMSPipeline::AGGREGATE);
+	mpPipeline.addStage(std::make_shared<MPStage>());
+	executeStagePipeline("MP Filtered Matches", mpPipeline);
 
-	//// run demo of HGMS with all stages registered
-	//HGMSPipeline allStagePipeline(HGMSPipeline::FILTER);
-	//allStagePipeline.addStage(std::make_shared<HGMSStage>());
-	//allStagePipeline.addStage(std::make_shared<LATStage>());
-	//allStagePipeline.addStage(std::make_shared<MPStage>());
-	//executeStagePipeline("All Stages Filtered Matches", allStagePipeline);
+	// run demo of HGMS with all stages registered
+	HGMSPipeline allStagePipeline(HGMSPipeline::FILTER);
+	allStagePipeline.addStage(std::make_shared<HGMSStage>());
+	allStagePipeline.addStage(std::make_shared<LATStage>());
+	allStagePipeline.addStage(std::make_shared<MPStage>());
+	executeStagePipeline("All Stages Filtered Matches", allStagePipeline);
 
 	return EXIT_SUCCESS;
 }

@@ -103,7 +103,7 @@ Mat HomographyEvaluator::loadHomographyFile(const std::string filepath)
 	}
 
 	// initialized Mat with 3 x 3 and 64 bit
-	Mat hMat(3, 3, CV_64F);
+	Mat hMat(rowColWidth, rowColWidth, CV_64F);
 
 	// try parsing row/col contents into Mat
 	for (int row = 0; row < rowColWidth; row++)
