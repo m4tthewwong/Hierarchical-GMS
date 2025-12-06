@@ -1,34 +1,42 @@
 //---------------------------------------------------------------------------  
 // MPStage.cpp
-// Multi-plane stage header file for representing multi-plane GMS processing stage. 
-// This class derives from ProcessingStage and provide implement for multi-plane
-// GMS feature match filtering. This class supports the following operations:
-//  1. Segment matches into motion-based image planes
-//  2. For each plane, perform a lightweight GMS-like consistency filtering
-//  3. Aggregate inlier matches from all planes
+// Multi-plane stage implementation file for representing the multi-plane GMS 
+// processing stage. This class derives from ProcessingStage and provides the 
+// concrete implementation for motion-plane segmentation and intra-plane match 
+// refinement. This stage supports the following operations:
+//  1. Segment feature matches into motion-based planes using motion vector clustering  
+//  2. Perform lightweight GMS-like consistency filtering within each plane  
+//  3. Aggregate filtered inliers from all planes into a final refined match set
 // Authors:  Matthew Wong, Brennan O'Reilly, Pranshu Bhardwaj
 //---------------------------------------------------------------------------
 // Inputs:
-//  -- Keypoints for image1 and image2, image sizes, and current match set
-//     (matchesAll)
+//  -- Keypoints for image 1 and image 2  
+//  -- Sizes of image 1 and image 2  
+//  -- Full match list (matchesAll) produced by previous stages  
+//  -- thresholdFactor for adjusting filtering strictness  
 // 
 // Outputs:
-// -- vDMatches: filtered inlier matches after multi-plane refinement
+//  -- vDMatches: filtered inlier match set after multi-plane refinement  
 // 
 // Description:
-//    Stage 3 provides support for parallax images or scenes with background
-//    and foreground objects at different depths. The stage clusters feature
-//    matches into motion planes and then runs a simple GMS-like consistency
-//    check per plane. The resulting inliers from all planes are merged into
-//    a single set of matches.
+//    This class provides the Multi-plane (MP) stage implementation, which is
+//    designed to improve match robustness in scenes containing parallax or
+//    multiple depth layers. The stage clusters feature match motion vectors
+//    into K motion planes and then applies a simplified GMS-like consistency
+//    test independently within each plane. This allows matches belonging to
+//    different depth layers or independently moving regions to be preserved
+//    rather than incorrectly filtered out by a single global model.
+// 
+//    The MP stage is typically applied after the initial HGMS stage has
+//    produced a coarse but robust match set, and after the LAT stage has
+//    optionally refined matches locally. MP then separates these refined
+//    matches into motion-consistent groups and filters each group separately.
 //
 // Assumptions:
 //   -- This class must be instantiated before it can be added to the HGMSPipeline
-//   -- HGMS and LAT stages have already been applied if necessary and provided a 
-//      reasonably good initial set of matches in matchesAll.
+//   -- Scenes may contain multiple depth layers or parallax motion  
+//   -- A small fixed number of planes (K=2) is used unless adapted later
 //---------------------------------------------------------------------------
-
-#pragma once
 
 #include <string>
 #include <vector>
@@ -44,12 +52,13 @@ using cv::TermCriteria;
 
 
 // ==========================================================================
-//  PRIVATE HELPER FUNCTIONS (formerly anonymous namespace)
+//  PRIVATE HELPER FUNCTIONS
 // ==========================================================================
 
-/*----------------------------- computeMotionVectors ----------------------
-* Helper for Step 1:
-* Compute motion vectors (p2 - p1) for each match.
+/*----------------------------- computeMotionVectors -------------------------------
+* Helper function to compute motion vectors (p2 - p1) for each feature match.
+* Preconditions: vkp1, vkp2, and matches contain valid indexed keypoints/matches.
+* Postconditions: Returns a vector of 2D motion vectors corresponding to matches.
 */
 std::vector<Point2f> MPStage::computeMotionVectors(
     const std::vector<cv::KeyPoint>& vkp1,
@@ -78,10 +87,10 @@ std::vector<Point2f> MPStage::computeMotionVectors(
 
 
 
-/*----------------------------- clusterMotionVectors ----------------------
-* Helper for Step 1:
-* Cluster motion vectors into K planes using k-means.
-* Returns a label (0..K-1) for each motion vector.
+/*----------------------------- clusterMotionVectors -------------------------------
+* Helper function to cluster motion vectors into K motion planes using k-means.
+* Preconditions: motion contains at least one valid motion vector; K >= 1.
+* Postconditions: Returns a label array assigning each motion vector to a plane.
 */
 std::vector<int> MPStage::clusterMotionVectors(
     const std::vector<Point2f>& motion,
@@ -129,17 +138,10 @@ std::vector<int> MPStage::clusterMotionVectors(
 
 
 
-/*----------------------------- filterPlaneMatches ------------------------
-* Helper for Step 2:
-* For one plane, perform a simple GMS-like consistency check based on the
-* distribution of motion vectors in that plane.
-*
-* - Compute mean motion for the plane
-* - Compute standard deviation of motion magnitudes
-* - Keep matches whose motion is within (stddevFactor * stddev) of the mean
-* 
-* For this check, I will be keeping matches with consistent motion in a plane
-* similar to how GMS keeps matches with consistent motion in a neighborhood.
+/*----------------------------- filterPlaneMatches -------------------------------
+* Helper function to apply a GMS-like filtering step within a single motion plane.
+* Preconditions: planeMatches contains valid matches belonging to the same plane.
+* Postconditions: inliersOut contains matches consistent with plane motion statistics.
 */
 void MPStage::filterPlaneMatches(
     const std::vector<cv::DMatch>& planeMatches,
