@@ -169,13 +169,16 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 			pipeExecMetrics.updatePipelineExecMetrics(pipeMetrics);
 		}
 
-		// Insert matches from stage
-		vDMatches.insert(vDMatches.end(), stageMatches.begin(), stageMatches.end());
-
 		// Reset inputMatches if processing mode set to filter
 		if (processingMode == FILTER)
 		{
-			inputMatches = stageMatches;
+			inputMatches = stageMatches; // next stage processing
+			vDMatches = std::move(stageMatches); // for the final return
+		}
+		else
+		{
+			// Insert matches from stage
+			vDMatches.insert(vDMatches.end(), stageMatches.begin(), stageMatches.end());
 		}
 	}
 }

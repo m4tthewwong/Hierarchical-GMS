@@ -107,9 +107,9 @@ namespace cv
                 final_inlier_count = current_stage_max_inlier;
 
                 // 5. DEBUG:
-                std::cout << "[HGMS DEBUG] Stage " << stage_index++ << ": Grid "
-                    << mCurrentGridSizeLeft.width << "x" << mCurrentGridSizeLeft.height
-                    << " filtered. Inliers remaining: " << current_stage_max_inlier << std::endl;
+                //std::cout << "[HGMS DEBUG] Stage " << stage_index++ << ": Grid "
+                //    << mCurrentGridSizeLeft.width << "x" << mCurrentGridSizeLeft.height
+                //    << " filtered. Inliers remaining: " << current_stage_max_inlier << std::endl;
             }
 
             // The result of the final stage is the final output.

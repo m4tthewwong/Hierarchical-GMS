@@ -30,6 +30,7 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_map>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -125,9 +126,12 @@ bool VGGBenchmarkRunner::calculateImagesetMatches(const std::string image1, Size
 *                against groundtruth.
 * Postconditions: Tests are completed and metrics generated.
 */
-void VGGBenchmarkRunner::run(const std::string vggFolderpath, const int maxFeatures, 
+void VGGBenchmarkRunner::run(const std::string imagesetName, const std::string vggFolderpath, const int maxFeatures, 
 	const float evaluateThreshold)
 {
+	// clear results
+	results.clear();
+
 	// for each imageset in the specified vggFilepath, run comparison and generate metrics
 	for (ImageSet set : vggDataSets)
 	{
@@ -156,7 +160,7 @@ void VGGBenchmarkRunner::run(const std::string vggFolderpath, const int maxFeatu
 			// Evaluate baseline with no filtering only ORB/Bruteforce
 			HomographyEvaluator::HomographyMetrics baselineMetrics = 
 				evaluator.computeBenchmarks(imageKp1, imageKp2, matches, hMat, evaluateThreshold);
-			ExecutionResult baselineResult = { "Baseline", set, baselineMetrics };
+			ExecutionResult baselineResult = { imagesetName,  "Baseline", set, baselineMetrics };
 			results.emplace_back(baselineResult);
 
 			// generate filtered matches from GMS
@@ -166,7 +170,7 @@ void VGGBenchmarkRunner::run(const std::string vggFolderpath, const int maxFeatu
 			// evalute Homography from orb/bruteforce filtered through GMS
 			HomographyEvaluator::HomographyMetrics gmsMetrics =
 				evaluator.computeBenchmarks(imageKp1, imageKp2, gmsFilteredMatches, hMat, evaluateThreshold);
-			ExecutionResult gmsResult = { "GMS", set, gmsMetrics };
+			ExecutionResult gmsResult = { imagesetName, "GMS", set, gmsMetrics };
 			results.emplace_back(gmsResult);
 
 			// generate filtered matches from HGMS
@@ -181,7 +185,7 @@ void VGGBenchmarkRunner::run(const std::string vggFolderpath, const int maxFeatu
 			// evalute Homography from orb/bruteforce filtered through HGMS
 			HomographyEvaluator::HomographyMetrics hgmsMetrics =
 				evaluator.computeBenchmarks(imageKp1, imageKp2, hgmsFilteredMatches, hMat, evaluateThreshold);
-			ExecutionResult hgmsResult = { "HGMS", set, hgmsMetrics };
+			ExecutionResult hgmsResult = { imagesetName, "HGMS", set, hgmsMetrics };
 			results.emplace_back(hgmsResult);
 
 		}
@@ -199,11 +203,59 @@ void VGGBenchmarkRunner::printResults() const
 	for (ExecutionResult result : results)
 	{
 		std::cout << "----------------------------" << std::endl;
-		std::cout << result.algoName << std::endl;
+		std::cout << result.imagesetName << " " << result.algoName << std::endl;
 		std::cout << "ImageSet Image1: " << result.imageset.image1 << " Image2: "
 			<< result.imageset.image2 << " Homography: " << result.imageset.homography << std::endl;
 		std::cout << "Precision: " << result.metrics.precision << std::endl;
 		std::cout << "Recall: " << result.metrics.recall << std::endl;
 		std::cout << "FScore: " << result.metrics.fscore << std::endl;
+	}
+}
+
+/*----------------------------- printCsvSummaryResults -------------------------------
+* Method to print average benchmark metric results from tests for each set of VGG images
+* that can then be plotted.
+* Preconditions: Instance of HomographyEvaluator class is instantiated and run method
+*                has been called successfully.
+* Postconditions: Test results in comma delimited format are printed to screen.
+*/
+void VGGBenchmarkRunner::printCsvSummaryResults() const
+{
+	// temporary structure to hold data sums per algorithm for averaging results
+	struct ExecutionSums {
+		double precisionSum = 0.0;
+		double recallSum = 0.0;
+		double fscoreSum = 0.0;
+		int resultCount = 0;
+	};
+
+	std::unordered_map<std::string, ExecutionSums> executionSumByAlgorithm;
+
+	// generate sums of results by algorithm 
+	for (const ExecutionResult result : results)
+	{
+		// to create the average precision, recall, fscore, we need the sums
+		// by algorithm and the count of records by algorithm
+		ExecutionSums& entry = executionSumByAlgorithm[result.algoName];
+		entry.precisionSum += result.metrics.precision;
+		entry.recallSum += result.metrics.recall;
+		entry.fscoreSum += result.metrics.fscore;
+		entry.resultCount++;
+	}
+
+	// output averages by algorithm
+	for (const std::pair<std::string, ExecutionSums>& entry : executionSumByAlgorithm)
+	{
+		const std::string algorithm = entry.first;
+		const ExecutionSums entrySums = entry.second;
+
+		// generate average values
+		double avgPrecision = entrySums.precisionSum / entrySums.resultCount;
+		double avgRecall = entrySums.recallSum / entrySums.resultCount;
+		double avgfscoreSum = entrySums.fscoreSum / entrySums.resultCount;
+
+		// output csv algorith, average precision, average recall, average fscore
+		std::cout << algorithm << ", " << avgPrecision << ", " << avgRecall << ", " 
+			<< avgfscoreSum << std::endl;
 	}
 }

@@ -52,7 +52,7 @@ public:
 	*                against groundtruth.
 	* Postconditions: Tests are completed and metrics generated.
 	*/
-	void run(const std::string vggFolderpath, const int maxFeatures,
+	void run(const std::string imagesetName, const std::string vggFolderpath, const int maxFeatures,
 		const float evaluateThreshold);
 
 	/*----------------------------- printResults -------------------------------
@@ -62,6 +62,15 @@ public:
 	* Postconditions: Test results are printed to screen.
 	*/
 	void printResults() const;
+	
+	/*----------------------------- printCsvSummaryResults -------------------------------
+	* Method to print average benchmark metric results from tests for each set of VGG images
+	* that can then be plotted.
+	* Preconditions: Instance of HomographyEvaluator class is instantiated and run method
+	*                has been called successfully.
+	* Postconditions: Test results in comma delimited format are printed to screen.
+	*/
+	void printCsvSummaryResults() const;
 
 private:
 	// constants for the HGMS and GMS threshold
@@ -77,6 +86,7 @@ private:
 
 	// struct to hold results for specific algorithm;
 	struct ExecutionResult {
+		std::string imagesetName;
 		std::string algoName;
 		ImageSet imageset;
 		HomographyEvaluator::HomographyMetrics metrics;
@@ -92,7 +102,7 @@ private:
 		{"img1.ppm", "img6.ppm", "H1to6p"}
 	};
 	
-	// vector to store results from each algorithm tested HGMS and GMS
+	// vector to store results from each Algorithm (none, GMS, HGMS) for an image batch 
 	std::vector<ExecutionResult> results;
 
 	/*----------------------------- isValidImage --------------------------
