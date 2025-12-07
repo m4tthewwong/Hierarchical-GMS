@@ -2,6 +2,21 @@
 // This file implements the Hierarchical GMS (HGMS) feature matcher based on the original GMS algorithm.
 // It extends the GMS approach by introducing a hierarchical grid structure to improve matching robustness and efficiency.
 
+/*
+* The HGMS (Hierarchical Grid-based Motion Statistics) feature matcher implementation shares all the functions
+* and structures of the original GMS matcher, with modifications to support hierarchical grid sizes.
+*
+* The key changes include:
+* 1. Hierarchical Grid Sizes: The matcher now defines multiple grid sizes (coarse to fine) to progressively filter matches.
+* 2. Progressive Filtering: The inlier mask is updated progressively through each grid stage, allowing for more robust matching.
+* 3. Scale Handling: The right image grid size is adjusted based on predefined scale ratios at each hierarchical level.
+*
+* Functions modified include:
+* - HGMSMatcher Constructor: Initializes hierarchical grid sizes and structures.
+* - getInlierMask: Implements the hierarchical filtering process across multiple grid sizes.
+* - runSingleStage: Core GMS logic adapted for hierarchical grid sizes.
+*/
+
 #include "hgms.hpp" // Use the newly created header
 #include <iostream>
 
