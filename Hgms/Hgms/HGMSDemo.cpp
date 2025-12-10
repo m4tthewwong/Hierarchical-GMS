@@ -53,7 +53,7 @@ const bool RUN_PIPELINE_DEMO = true;
 // Name of input source images to run with demo. Update these two variables
 // with specific source/dest images to run through HGMS
 const string SOURCE_IMAGE = "lambo1.jpg";
-const string DEST_IMAGE = "lambo-right.jpg";
+const string DEST_IMAGE = "lambo1-zoom.jpg";
 
 // Folder path for VGG images if running benchmarks
 // must be set to valid path if running benchmarks
@@ -72,7 +72,7 @@ const string INPUT_IMAGE_1_WINDOW_NAME = "Input Image 1";
 const string INPUT_IMAGE_2_WINDOW_NAME = "Input Image 2";
 
 // const for image size scale
-const float DISPLAY_SCALE = 2;
+const int DISPLAY_SCALE = 2;
 
 /*----------------------------- isValidImage --------------------------
  * Helper method to validate that the image provided is a valid image.
