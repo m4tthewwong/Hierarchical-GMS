@@ -15,6 +15,8 @@
 * - HGMSMatcher Constructor: Initializes hierarchical grid sizes and structures.
 * - getInlierMask: Implements the hierarchical filtering process across multiple grid sizes.
 * - runSingleStage: Core GMS logic adapted for hierarchical grid sizes.
+* 
+* All other functions from the original GMS matcher are retained with minor adjustments to accommodate the hierarchical approach.
 */
 
 #include "hgms.hpp" // Use the newly created header
