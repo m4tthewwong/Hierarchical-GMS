@@ -4,23 +4,26 @@
 // This class provides statistics for each execution stage so that the performance
 // can be evaluated and compared against other algorithms. This class supports 
 // the following operations:
-//	1. 
+//	1. Storage of matches discovered per stage
+//  2. Print method to output metrics
 // Authors:  Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
 //  -- StageExecMetrics which represents the metric for one execution stage
 // 
 // Outputs:
-// -- Collection of StageExecMetrics data structures
-// -- PipelineExecMetrics data structure
+//  -- Collection of StageExecMetrics data structures
+//  -- PipelineExecMetrics data structure
 // 
 // Description:
 //    This class provides methods to profile execution performance for each
 //    pipeline processing stage.
 //
 // Assumptions:
-//   -- 
+//   -- This class is meant to be called from the HGMSPipeline class and any other
+//      class that requires output of performance from HGMSPipeline.
 // 
+
 #pragma once
 #include <sstream>
 #include "ExecutionMetrics.h"
@@ -39,7 +42,7 @@ ExecutionMetrics::ExecutionMetrics()
 
 /*----------------------------- destructor ------------------------------------
 * Destructor for class ExecutionMetrics.
-* Preconditions: none.
+* Preconditions: Initialized ExecutionMetrics class that is being dereferenced
 * Postconditions: This method will perform clean-up and deallocation
 */
 ExecutionMetrics::~ExecutionMetrics()
@@ -99,9 +102,10 @@ void ExecutionMetrics::addStageMetrics(const StageExecMetrics& stageMetrics)
 
 /*-----------------------------  print  -----------------------------------
 * Overloaded output operator for class ExecutionMetrics.
-* Preconditions: None.
-* Postconditions: The value of pipeline metrics and stage metrics is sent to
-*                 the output stream.
+* Preconditions: Instance of ExecutionMetrics has been instantiated and populated
+* with metric.
+* Postconditions: The output of the pipeline execution metrics and metrics from
+* each stage.
 */
 void ExecutionMetrics::print(std::ostream& outputStream) const
 {

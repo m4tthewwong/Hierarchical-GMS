@@ -4,7 +4,8 @@
 // This class provides statistics for each execution stage so that the performance
 // can be evaluated and compared against other algorithms. This class supports 
 // the following operations:
-//	1. 
+//	1. Storage of matches discovered per stage
+//  2. Print method to output metrics
 // Authors:  Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
@@ -19,7 +20,8 @@
 //    pipeline processing stage.
 //
 // Assumptions:
-//   -- 
+//   -- This class is meant to be called from the HGMSPipeline class and any other
+//      class that requires output of performance from HGMSPipeline.
 // 
 
 #pragma once
@@ -47,7 +49,7 @@ public:
 	
 	/*----------------------------- destructor --------------------------------
 	* Destructor for class ExecutionMetrics.
-	* Preconditions: none.
+	* Preconditions: Initialized ExecutionMetrics class that is being dereferenced
 	* Postconditions: This method will perform clean-up and deallocation
 	*/
 	~ExecutionMetrics();
@@ -90,9 +92,10 @@ public:
 
 	/*-----------------------------  print  -----------------------------------
 	* Overloaded output operator for class ExecutionMetrics.
-	* Preconditions: None.
-	* Postconditions: The value in year, grade, player, and creator is sent to
-	*                 the output stream.
+	* Preconditions: Instance of ExecutionMetrics has been instantiated and populated
+	* with metric.
+	* Postconditions: The output of the pipeline execution metrics and metrics from
+	* each stage.
 	*/
 	void print(std::ostream& outputStream) const;
 
@@ -112,6 +115,8 @@ public:
 	void initialize();
 
 private:
+	// private vars for holding collection of execution stage metrics and
+	// total pipeline execution metrics.
 	std::vector<StageExecMetrics> stagesExecMetrics;
 	PipelineExecMetrics pipelineExecMetrics;
 };

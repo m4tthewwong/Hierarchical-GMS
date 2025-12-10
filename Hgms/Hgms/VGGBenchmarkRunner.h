@@ -1,13 +1,28 @@
 //---------------------------------------------------------------------------
 // VGGBenchmarkRunner.h
-// Header code for runner class that compares performance of the HGMS algorithm 
-// against GMS algorithm for the VGG affine dataset.
+// Header implementation for runner class that compares performance of the HGMS algorithm 
+// against GMS algorithm for the VGG affine covariant dataset. 
+// https://www.robots.ox.ac.uk/~vgg/research/affine/
+// Expectation is that the image files and homography files follow the same naming
+// standard as what is in the VGG affine covariant dataset. For each specified
+// folder, the expectation is that there are 6 images and 6 homography files.
+// The images need to be named img1 - 6 and are in ppm format. The homography
+// files are named like the following H1to2p without a file extension and indicate
+// the homography transform between 2 sets of images.
+// 
 // Performs the following operations:
-//	1. 
+//	1. Run method which executes the VGGBenchmark runner tests on VGG dataset
+//  2. Method to print results
+//  3. Method to print results in csv format for graphing
 // Authors:  Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
 //  -- Valid path to VGG affine transform homography and image input files
+//  -- Imageset files must match the following naming standard:
+//      image files named img1.ppm -> img6.ppm
+//  -- Homography files named H1to2p through H1to6p (no file extension)
+//  -- Imageset files must exist in same folder as HGMSDemo executable or 
+//     the path in the HGMSDemo must be updated to the valid VGG imageset path.
 // 
 // Outputs:
 // -- Utilizes mock data for generating images, keypoints, matches and outputs
@@ -18,7 +33,12 @@
 //    HGMS classes and functions.
 //
 // Assumptions:
-//   -- None
+//   -- Valid path to VGG affine transform homography and image input files
+//   -- Imageset files must match the following naming standard:
+//      image files named img1.ppm -> img6.ppm
+//   -- Homography files named H1to2p through H1to6p (no file extension)
+
+
 #pragma once
 
 #include <string>
@@ -94,7 +114,7 @@ private:
 
 	// vector store VGG dataset to process. The naming, number of images, homography
 	// of the VGG datasets are identical between image sets.
-	std::vector<ImageSet> vggDataSets = {
+	const std::vector<ImageSet> vggDataSets = {
 		{"img1.ppm", "img2.ppm", "H1to2p"},
 		{"img1.ppm", "img3.ppm", "H1to3p"},
 		{"img1.ppm", "img4.ppm", "H1to4p"},

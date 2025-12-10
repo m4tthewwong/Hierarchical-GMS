@@ -4,17 +4,27 @@
 // processing stage. This class derives from ProcessingStage and provides 
 // implementation for local affine GMS feature match filtering. This class 
 // supports the following operations:
-//	1. 
+//	1. Perform local affine (RANSAC-based) refinement on grid-based matches
+//	STEP 1. Create Soure and Destination grids
+//  STEP 2. Discretize feature matches from source into count matrix
+//  STEP 3: Identify rows with high enough sums (e.g. matches), run RANSAC to create matrix
+//  STEP 4: Apply matrix to cell center to derive center of target cell
+//  STEP 5: Return filtered inliers
 // Authors:   Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
-//  -- 
+//  -- Keypoints for image 1 and image 2  
+//  -- Sizes of image 1 and image 2  
+//  -- Full match list (matchesAll) produced by previous stages  
+//  -- thresholdFactor for adjusting filtering strictness  
 // 
-// Outputs:
-// -- 
+// // Outputs:
+// -- vDMatches: filtered inlier match set after local affine transform refinement 
 // 
 // Description:
-//    This class provides the local affine transformation stage implementation.
+//    This class provides the local affine transformation stage implementation, 
+//    which is designed to predict how neighborhood clusters will transform from
+//    source to target image and then filter feature matches based on RANSAC prediction.
 //
 // Assumptions:
 //   -- This class must be instantiated before it can be added to the HGMSPipeline
@@ -59,10 +69,10 @@ private:
 	static constexpr const char* STAGE_NAME = "LAT";
 
 	// Threshold for determining number of matches before performing RANSAC
-	const int RANSAC_MATCH_THRESHOLD = 50;
-	
+	const int RANSAC_MATCH_THRESHOLD = 5;
+
 	// Threshold for number of counts that must exist in target cell to keep match
-	const int FINAL_SCORE_THRESHOLD = 5;
+	const int FINAL_SCORE_THRESHOLD = 1;
 
 	// This 2d array stores the offsets to retrieve the neighborhood counts
 	// based on the predicted target center.
@@ -89,11 +99,11 @@ private:
 
 	/*----------------------------- calcCellCenter -------------------------------
 	* Private method to calculate the cell center
-	* Preconditions: 
-	* Postconditions:
-	*/	Point2f calcCellCenter(int linearIndex, 
+	* Preconditions: Valid cell index, size, number of rows/cols in grid
+	* Postconditions: Point2f calculation of cell center
+	*/
+	Point2f calcCellCenter(int linearIndex, 
 		const Size& size, 
 		int gridRows, 
 		int gridCols) const;
-
 };

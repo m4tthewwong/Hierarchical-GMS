@@ -3,14 +3,24 @@
 // Orchestrator class file for registering/deregistering processing stages, 
 // stage executions, and retrieving performance metrics from execution. This 
 // class supports the following operations:
-//	1. 
+//	1. Ability to add different processing stage implementations derived from
+//     processing stage abstract class. Only one instance of a specific processing
+//     stage is supported.
+//  2. Ability to remove processing stages from collection of stages.
+//  3. Ability to get size of pipeline (number of stages)
+//  4. Ability to execution pipeline with all stages
 // Authors:  Brennan O’Reilly, Matthew Wong, Pranshu Bhardwaj
 //---------------------------------------------------------------------------
 // Inputs:
-//  -- 
+//  -- The HGMS pipeline requires stages to be added to run and filter matches
 // 
 // Outputs:
-// -- 
+//  -- Filtering of matches using registered stages. Two modes are supported:
+//     filter mode which allows for outputs from one stage to serve as the input
+//     to the next registered stage. Aggregate mode which provides the same
+//     pipeline inputs and then aggregates the results from each stage. The
+//     final match output has duplicates (as determined by concatenanation of
+//     queryIdx and trainIdx) removed.
 // 
 // Description:
 //    This class provides the orchestrator or manager for the HGMS processing.
@@ -20,11 +30,14 @@
 //    in this class.
 //
 // Assumptions:
-//   -- 
+//   -- The run method will only filter images if stages have been registered
+//   -- No error message is returned if no stages are registered
 // 
 
 #pragma once
 
+#include <unordered_set>
+#include <cstdint>
 #include "HGMSPipeline.h"
 
 /*----------------------------- default ---------------------------------------
@@ -125,62 +138,112 @@ void HGMSPipeline::match(const std::vector<KeyPoint>& vkp1, const Size& size1,
 	const std::vector<KeyPoint>& vkp2, const Size& size2, const std::vector<DMatch>& matchesAll,
 	std::vector<DMatch>& vDMatches, const double thresholdFactor)
 {
+	// check that stages have been registered and exit if not
+	if (getStageSize() == 0)
+	{
+		return;
+	}
+
 	// Initialize the pipeExecMetrics object
 	pipeExecMetrics.initialize();
 
 	// allocate size of vDMatches to max matches * number of stages
+	vDMatches.clear();
 	vDMatches.reserve(matchesAll.size() * pipelineStages.size());
 
 	// create copy of input Matches
 	std::vector<DMatch> inputMatches(matchesAll);
 
 	// Setup timers
+	double totalExecutionTimeMs = 0.0;
+
+	// iterate registered stages and execute
 	for (auto& stage : pipelineStages)
 	{
-		std::vector<DMatch> stageMatches(matchesAll.size());
-		
-		if (stage)
+		std::vector<DMatch> stageMatches;
+		stageMatches.reserve(matchesAll.size());
+
+		// skip to next stage if null
+		if (!stage)
 		{
-			// initialize time and execute stage
-			TickMeter tm;
-			tm.start();
-
-			// execute stage
-			stage->execute(vkp1, size1, vkp2, size2, inputMatches, stageMatches, thresholdFactor);
-			
-			// stop timer
-			tm.stop();
-			
-			// populate stage metrics and add to collection
-			ExecutionMetrics::StageExecMetrics stageMetrics;
-			stageMetrics.stageName = stage->getStageName();
-			stageMetrics.stageMatchesInputSize = matchesAll.size();
-			stageMetrics.stageMatchesOutputSize = stageMatches.size();
-			stageMetrics.executionTimeMs = tm.getTimeMilli();
-
-			// add execution metrics to collection
-			pipeExecMetrics.addStageMetrics(stageMetrics);
-
-			// increment total pipeline metrics
-			ExecutionMetrics::PipelineExecMetrics pipeMetrics;
-			pipeMetrics.totalExecutionTimeMs = tm.getTimeMilli();
-			pipeMetrics.totalRawMatchesInputSize = matchesAll.size();
-			pipeMetrics.totalUniqueMatchesOutputSize = vDMatches.size();
-			pipeExecMetrics.updatePipelineExecMetrics(pipeMetrics);
+			continue;
 		}
+
+		// initialize time and execute stage
+		TickMeter tm;
+		tm.start();
+
+		// execute stage
+		stage->execute(vkp1, size1, vkp2, size2, inputMatches, stageMatches, thresholdFactor);
+			
+		// stop timer
+		tm.stop();
+		const double stageExecutionTimeMs = tm.getTimeMilli();
+		totalExecutionTimeMs += stageExecutionTimeMs;
+			
+		// populate stage metrics and add to collection
+		ExecutionMetrics::StageExecMetrics stageMetrics;
+		stageMetrics.stageName = stage->getStageName();
+		stageMetrics.stageMatchesInputSize = inputMatches.size();
+		stageMetrics.stageMatchesOutputSize = stageMatches.size();
+		stageMetrics.executionTimeMs = stageExecutionTimeMs;
+
+		// add execution metrics to collection
+		pipeExecMetrics.addStageMetrics(stageMetrics);
 
 		// Reset inputMatches if processing mode set to filter
 		if (processingMode == FILTER)
 		{
 			inputMatches = stageMatches; // next stage processing
-			vDMatches = std::move(stageMatches); // for the final return
+			vDMatches = stageMatches; // for the final return
 		}
 		else
 		{
-			// Insert matches from stage
-			vDMatches.insert(vDMatches.end(), stageMatches.begin(), stageMatches.end());
+			// Insert non-empty stage matches
+			if (!stageMatches.empty())
+			{
+				// Insert matches from stage
+				vDMatches.insert(vDMatches.end(), stageMatches.begin(), stageMatches.end());
+			}
 		}
 	}
+
+	// -------------------------------------------------------------
+	// Remove duplicates: unique by (queryIdx, trainIdx)
+	// -------------------------------------------------------------
+	std::unordered_set<uint64_t> visited;
+	visited.reserve(vDMatches.size());
+
+	std::vector<DMatch> unique;
+	unique.reserve(vDMatches.size());
+
+	for (const auto& m : vDMatches)
+	{
+		// skip invalid match entries
+		if (m.queryIdx < 0 || m.trainIdx < 0)
+		{
+			continue;
+		}
+
+		// create composite key to check if it has been seen and also to insert
+		uint64_t key = (uint64_t(static_cast<int>(m.queryIdx)) << 32) | uint32_t(static_cast<int>(m.trainIdx));
+		
+		// insert key and also record into vector if not seen
+		if (visited.insert(key).second)
+		{
+			unique.push_back(m);
+		}
+	}
+
+	vDMatches.swap(unique);
+
+	// increment total pipeline metrics
+	ExecutionMetrics::PipelineExecMetrics pipeMetrics;
+	pipeMetrics.totalExecutionTimeMs = totalExecutionTimeMs;
+	pipeMetrics.totalRawMatchesInputSize = matchesAll.size();
+	pipeMetrics.totalUniqueMatchesOutputSize = vDMatches.size();
+	pipeExecMetrics.updatePipelineExecMetrics(pipeMetrics);
+
 }
 
 /*----------------------------- getExecMetrics ----------------------------

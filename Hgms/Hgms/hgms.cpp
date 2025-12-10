@@ -44,9 +44,9 @@ namespace cv
             mvMatchPairs.assign(mNumberMatches, pair<int, int>(0, 0));
 
             // Define the hierarchical grid sizes: Coarse -> Medium -> Fine
-            mGridSizes.push_back(Size(18, 18));
-            mGridSizes.push_back(Size(22, 22));
-            mGridSizes.push_back(Size(30, 30)); // Final resolution
+            mGridSizes.push_back(Size(15, 15));
+            mGridSizes.push_back(Size(20, 20));
+            mGridSizes.push_back(Size(25, 25)); // Final resolution
 
             // Initialize the final inlier mask to all true initially
             mvbInlierMask.assign(mNumberMatches, true);

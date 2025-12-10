@@ -7,8 +7,12 @@
 // affine transformations, includes a homography file for each image dataset that
 // can be used as the ground truth.
 // 
-// the following operations:
-//	1. 
+// The HomographyEvaluator supports the following operations:
+//	1. Load homography files
+//  2. Apply homograpy to source points
+//  3. Compute precision, recall, fscore
+//  4. Compute true and false positives so precision, recall, fscore can be calculated
+// 
 // Authors:  Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
@@ -127,7 +131,8 @@ Mat HomographyEvaluator::loadHomographyFile(const std::string filepath)
 * Preconditions: Valid keypoints and Mat from homography file
 * Postconditions: This method will return a point corresponding to the warped point
 */
-const std::vector<Point2f> HomographyEvaluator::applyTransform(const std::vector<Point2f>& sourcePoints, const Mat& hMat)
+const std::vector<Point2f> HomographyEvaluator::applyTransform(const std::vector<Point2f>& sourcePoints, 
+	const Mat& hMat)
 {
 	// apply homography mat to source point using perspectiveTransform which
 	// will apply and normalize from 3d to 2d.
@@ -169,8 +174,9 @@ void HomographyEvaluator::computeStatistics(HomographyMetrics& metrics)
 * Postconditions: This method will return the updated Benchmark Metrics struct
 *                 with the count of true and false positives
 */
-void HomographyEvaluator::computeTrueFalsePositives(const std::vector<Point2f>& hPoints, const std::vector<Point2f>& actualPoints, 
-	const std::vector<DMatch>& matches, const float threshold, HomographyMetrics& metrics)
+void HomographyEvaluator::computeTrueFalsePositives(const std::vector<Point2f>& hPoints, 
+	const std::vector<Point2f>& actualPoints, const std::vector<DMatch>& matches, 
+	const float threshold, HomographyMetrics& metrics)
 {
 	// initialize true and false positive counters
 	int truePositives = 0, falsePositives = 0;

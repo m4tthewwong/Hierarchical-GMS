@@ -2,7 +2,8 @@
 // HGMSUnitTest.cpp
 // Driver code for testing the HGMS algorithm and associated class files
 // Performs the following operations:
-//	1. 
+//	1. Unit tests of pipeline stage registration
+//  2. Unit tests of metrics output
 // Authors:  Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
@@ -24,6 +25,30 @@
 
 using namespace std;
 
+/*----------------------------- default -----------------------------------
+* Default constructor for class HGMSUnitTests.
+* Preconditions: none
+* Postconditions: Instance of HGMSUnitTests class is instantiated
+*/
+HGMSUnitTests::HGMSUnitTests()
+{
+}
+
+/*----------------------------- destructor -------------------------------
+* Destructor for class 	~HGMSUnitTests();.
+* Preconditions: Instance of ~HGMSUnitTests() class is instantiated.
+* Postconditions: Objects are deallocated.
+*/
+HGMSUnitTests::~HGMSUnitTests()
+{
+}
+
+/*----------------------------- runUnitTests -------------------------------
+* Public runUnitTests method which runs the unit tests.
+* Preconditions: Instance of HGMSUnitTests instantiated
+* Postconditions: Unit tests for testing pipeline registration and printing of
+*                 metrics executed.
+*/
 void HGMSUnitTests::runUnitTests()
 {
 	// validate stage registration
@@ -31,8 +56,14 @@ void HGMSUnitTests::runUnitTests()
 	validateHGMSStageRegistration();
 	validateLATStageRegistration();
 	validateMPStageRegistration();
+	validateNoStageHGMSPipeline();
 }
 
+/*----------------------------- validateHGMSPipeline --------------------------
+* Private helper for validating the registration of HGMS pipeline
+* Preconditions: Initialized HGMSUnitTests class
+* Postconditions: assert if result does not match expected output
+*/
 void HGMSUnitTests::validateHGMSPipeline()
 {
 	cout << "validateHGMSPipeline" << endl;
@@ -50,6 +81,11 @@ void HGMSUnitTests::validateHGMSPipeline()
 	cout << execMetrics;
 }
 
+/*------------------- validateHGMSStageRegistration -----------------------
+* Private helper for validating the registration of HGMS stage
+* Preconditions: Initialized HGMSUnitTests class
+* Postconditions: assert if result does not match expected output
+*/
 void HGMSUnitTests::validateHGMSStageRegistration()
 {
 	cout << "validateHGMSStageRegistration" << endl;
@@ -71,6 +107,11 @@ void HGMSUnitTests::validateHGMSStageRegistration()
 	cout << execMetrics;
 }
 
+/*------------------- validateLATStageRegistration -----------------------
+* Private helper for validating the registration of LAT stage
+* Preconditions: Initialized HGMSUnitTests class
+* Postconditions: assert if result does not match expected output
+*/
 void HGMSUnitTests::validateLATStageRegistration()
 {
 	cout << "validateLATStageRegistration" << endl;
@@ -92,6 +133,11 @@ void HGMSUnitTests::validateLATStageRegistration()
 	cout << execMetrics;
 }
 
+/*------------------- validateMPStageRegistration -----------------------
+* Private helper for validating the registration of MP stage
+* Preconditions: Initialized HGMSUnitTests class
+* Postconditions: assert if result does not match expected output
+*/
 void HGMSUnitTests::validateMPStageRegistration()
 {
 	cout << "validateMPStageRegistration" << endl;
@@ -113,9 +159,37 @@ void HGMSUnitTests::validateMPStageRegistration()
 	cout << execMetrics;
 }
 
+/*------------------- validateNoStageHGMSPipeline -----------------------
+* Private helper for validating the behavior of no stage registration
+* Preconditions: Initialized HGMSUnitTests class
+* Postconditions: assert if result does not match expected output
+*/
+void HGMSUnitTests::validateNoStageHGMSPipeline()
+{
+	cout << "validateNoStageHGMSPipeline" << endl;
+
+	// initialize pipeline
+	HGMSPipeline pipeline(HGMSPipeline::AGGREGATE);
+
+	// get metrics
+	ExecutionMetrics execMetrics = pipeline.getExecMetrics();
+
+	// print metrics to screen
+	cout << execMetrics;
+}
+
+/*----------------------------- generateRandomKP -------------------------------
+* Private helper generateRandomKP method for generating mock key point data.
+* Preconditions: non-zero num and seed are provided
+* Postconditions: Vector of KeyPoints generated
+*/
 std::vector<cv::KeyPoint> HGMSUnitTests::generateRandomKP(int num, int seed)
 {
 	vector<KeyPoint> keypoints;
+	if (num <= 0 || seed <= 0)
+	{
+		return keypoints;
+	}
 
 	for (int i = 0; i < num; i++)
 	{
@@ -129,6 +203,11 @@ std::vector<cv::KeyPoint> HGMSUnitTests::generateRandomKP(int num, int seed)
 	return keypoints;
 }
 
+/*----------------------------- generateMockMatches -------------------------------
+* Private helper generateMockMatches method for generating mock DMatch data.
+* Preconditions: non-zero num is provided
+* Postconditions: Vector of DMatch generated
+*/
 std::vector<cv::DMatch> HGMSUnitTests::generateMockMatches(int num)
 {
 	vector<DMatch> matches;
@@ -141,7 +220,17 @@ std::vector<cv::DMatch> HGMSUnitTests::generateMockMatches(int num)
 	return matches;
 }
 
+/*----------------------------- generateMockImages -------------------------------
+* Private helper generateMockImages method for generating mock image data.
+* Preconditions: non-zero width, height, and type are provided
+* Postconditions: Mat generated of sample image
+*/
 cv::Mat HGMSUnitTests::generateMockImages(int width, int height, int type)
 {
+	if (width <= 0 || height <= 0 || type <= 0)
+	{
+		return Mat();
+	}
+
 	return Mat::zeros(height, width, type);
 }

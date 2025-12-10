@@ -7,8 +7,12 @@
 // affine transformations, includes a homography file for each image dataset that
 // can be used as the ground truth.
 // 
-// the following operations:
-//	1. 
+// The HomographyEvaluator supports the following operations:
+//	1. Load homography files
+//  2. Apply homograpy to source points
+//  3. Compute precision, recall, fscore
+//  4. Compute true and false positives so precision, recall, fscore can be calculated
+// 
 // Authors:  Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:

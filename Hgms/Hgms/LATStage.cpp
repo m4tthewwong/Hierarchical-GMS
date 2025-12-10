@@ -19,7 +19,9 @@
 // -- Filtered inlier matches after local affine refinement
 // 
 // Description:
-//    This class provides the local affine transformation stage implementation.
+//    This class provides the local affine transformation stage implementation, 
+//    which is designed to predict how neighborhood clusters will transform from
+//    source to target image and then filter feature matches based on RANSAC prediction.
 //
 // Assumptions:
 //   -- This class must be instantiated before it can be added to the HGMSPipeline
@@ -91,8 +93,8 @@ int LATStage::getCellIndex(const cv::Point2f& pt,
 
 /*----------------------------- calcCellCenter -------------------------------
 * Private method to calculate the cell center
-* Preconditions:
-* Postconditions:
+* Preconditions: Valid cell index, size, number of rows/cols in grid
+* Postconditions: Point2f calculation of cell center
 */
 Point2f LATStage::calcCellCenter(int cellIndex, 
 	const Size& size, 

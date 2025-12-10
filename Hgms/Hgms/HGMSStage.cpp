@@ -22,6 +22,7 @@
 #pragma once
 
 #include <string>
+#include <opencv2/xfeatures2d.hpp>
 #include "HGMSStage.h"
 
 /*----------------------------- default -----------------------------------
@@ -57,5 +58,6 @@ void HGMSStage::execute(const std::vector<KeyPoint>& vkp1, const Size& size1,
 {
 	// Call HGMS class execute method
 	// create GMS matcher to computer matches between descriptors
-	xfeatures2d::matchHGMS(size1, size2, vkp1, vkp2, matchesAll, vDMatches, false, false, thresholdFactor);
+	// call HGMS with scale support on and rotation support off
+	xfeatures2d::matchHGMS(size1, size2, vkp1, vkp2, matchesAll, vDMatches, false, true, thresholdFactor);
 }

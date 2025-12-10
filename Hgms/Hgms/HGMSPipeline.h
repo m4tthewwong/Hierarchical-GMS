@@ -3,14 +3,24 @@
 // Orchestrator header file for registering/deregistering processing stages and
 // retrieving performance metrics from execution. This class supports the 
 // following operations:
-//	1. 
+//	1. Ability to add different processing stage implementations derived from
+//     processing stage abstract class. Only one instance of a specific processing
+//     stage is supported.
+//  2. Ability to remove processing stages from collection of stages.
+//  3. Ability to get size of pipeline (number of stages)
+//  4. Ability to execution pipeline with all stages
 // Authors:  Brennan O’Reilly, Matthew Wong, Pranshu Bhardwaj
-//-----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // Inputs:
-//  -- 
+//  -- The HGMS pipeline requires stages to be added to run and filter matches
 // 
 // Outputs:
-// -- 
+//  -- Filtering of matches using registered stages. Two modes are supported:
+//     filter mode which allows for outputs from one stage to serve as the input
+//     to the next registered stage. Aggregate mode which provides the same
+//     pipeline inputs and then aggregates the results from each stage. The
+//     final match output has duplicates (as determined by concatenanation of
+//     queryIdx and trainIdx) removed.
 // 
 // Description:
 //    This class provides the orchestrator or manager for the HGMS processing.
@@ -20,10 +30,12 @@
 //    in this class.
 //
 // Assumptions:
-//   -- 
+//   -- The run method will only filter images if stages have been registered
+//   -- No error message is returned if no stages are registered
 // 
 
 #pragma once
+
 #include "ProcessingStage.h"
 #include "ExecutionMetrics.h"
 

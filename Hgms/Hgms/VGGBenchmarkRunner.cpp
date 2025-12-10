@@ -11,11 +11,18 @@
 // the homography transform between 2 sets of images.
 // 
 // Performs the following operations:
-//	1. 
+//	1. Run method which executes the VGGBenchmark runner tests on VGG dataset
+//  2. Method to print results
+//  3. Method to print results in csv format for graphing
 // Authors:  Brennan O’Reilly, Pranshu Bhardwaj, Matthew Wong
 //---------------------------------------------------------------------------
 // Inputs:
 //  -- Valid path to VGG affine transform homography and image input files
+//  -- Imageset files must match the following naming standard:
+//      image files named img1.ppm -> img6.ppm
+//  -- Homography files named H1to2p through H1to6p (no file extension)
+//  -- Imageset files must exist in same folder as HGMSDemo executable or 
+//     the path in the HGMSDemo must be updated to the valid VGG imageset path.
 // 
 // Outputs:
 // -- Utilizes mock data for generating images, keypoints, matches and outputs
@@ -26,7 +33,12 @@
 //    HGMS classes and functions.
 //
 // Assumptions:
-//   -- None
+//   -- Valid path to VGG affine transform homography and image input files
+//   -- Imageset files must match the following naming standard:
+//      image files named img1.ppm -> img6.ppm
+//   -- Homography files named H1to2p through H1to6p (no file extension)
+
+
 #pragma once
 
 #include <iostream>
@@ -84,8 +96,8 @@ bool VGGBenchmarkRunner::calculateImagesetMatches(const std::string image1, Size
 	bool isValidImageset = false;
 
 	// read images
-	const Mat imageMat1 = imread(image1, IMREAD_GRAYSCALE);
-	const Mat imageMat2 = imread(image2, IMREAD_GRAYSCALE);
+	const Mat imageMat1 = imread(image1);
+	const Mat imageMat2 = imread(image2);
 	size1 = imageMat1.size();
 	size2 = imageMat2.size();
 

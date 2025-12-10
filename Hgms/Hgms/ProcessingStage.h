@@ -3,14 +3,17 @@
 // Abstract stage header file for representing processing stage. This class is
 // meant to be derived and not instantiated by itself. This class supports the 
 // following operations:
-//	1. 
+//	1. Provides constructor/deconstructor
+//  2. Provides execute method to run the stage
+//  3. Provides ability to retrieve stage name
 // Authors:  Pranshu Bhardwaj, Matthew Wong, Brennan O’Reilly
 //---------------------------------------------------------------------------
 // Inputs:
-//  -- 
+//  -- Stage must be constructed with a stageName parameter to identify the stage
 // 
 // Outputs:
-// -- 
+// -- This class is not been to be instantiated directly but the derived classes
+//    will be able to retrieve the stage name.
 // 
 // Description:
 //    This class provides the stage abstract template class that represents a

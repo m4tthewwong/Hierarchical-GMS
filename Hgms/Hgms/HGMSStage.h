@@ -3,14 +3,17 @@
 // HGMS stage header file for representing hierarchical GMS processing stage. 
 // This class derives from ProcessingStage and provides implementation for hierarchical
 // GMS feature match filtering. This class supports the following operations:
-//	1. 
+//	1. Match method for HGMS algorithm
 // Authors:  Pranshu Bhardwaj, Matthew Wong, Brennan O’Reilly
 //---------------------------------------------------------------------------
 // Inputs:
-//  -- 
+//  -- Keypoints for image 1 and image 2  
+//  -- Sizes of image 1 and image 2  
+//  -- Full match list (matchesAll) produced by previous stages  
+//  -- thresholdFactor for adjusting filtering strictness  
 // 
 // Outputs:
-// -- 
+// //  -- vDMatches: filtered inlier match set after HGMS refinement 
 // 
 // Description:
 //    This class provides the HGMS stage implementation.
