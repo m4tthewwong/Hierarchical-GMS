@@ -53,7 +53,7 @@ const bool RUN_PIPELINE_DEMO = true;
 // Name of input source images to run with demo. Update these two variables
 // with specific source/dest images to run through HGMS
 const string SOURCE_IMAGE = "lambo1.jpg";
-const string DEST_IMAGE = "lambo1-zoom.jpg";
+const string DEST_IMAGE = "lambo-right.jpg";
 
 // Folder path for VGG images if running benchmarks
 // must be set to valid path if running benchmarks
@@ -68,7 +68,8 @@ const float BENCHMARK_EVAL_THRESHOLD = 3.0;
 // Constants for window naming
 const string NO_HGMS_WINDOW_NAME = "All Matches No Filter";
 const string GMS_WINDOW_NAME = "GMS Filtered Matches";
-const string INPUT_IMAGE_WINDOW_NAME = "Input Images";
+const string INPUT_IMAGE_1_WINDOW_NAME = "Input Image 1";
+const string INPUT_IMAGE_2_WINDOW_NAME = "Input Image 2";
 
 // const for image size scale
 const float DISPLAY_SCALE = 2;
@@ -263,21 +264,21 @@ void executeStagePipeline(const string windowName, HGMSPipeline pipeline, const 
 	ExecutionMetrics execMetrics = pipeline.getExecMetrics();
 
 	// draw input images
-	Mat concatImages;
-	hconcat(imageMat1, imageMat2, concatImages);
-	namedWindow(INPUT_IMAGE_WINDOW_NAME, WINDOW_NORMAL);
-	resizeWindow(INPUT_IMAGE_WINDOW_NAME, concatImages.cols / DISPLAY_SCALE, concatImages.rows / DISPLAY_SCALE);
-	imshow(INPUT_IMAGE_WINDOW_NAME, concatImages);
-	moveWindow(INPUT_IMAGE_WINDOW_NAME, 10, 10);
+	namedWindow(INPUT_IMAGE_1_WINDOW_NAME, WINDOW_NORMAL);
+	resizeWindow(INPUT_IMAGE_1_WINDOW_NAME, imageMat1.cols / DISPLAY_SCALE, imageMat1.rows / DISPLAY_SCALE);
+	imshow(INPUT_IMAGE_1_WINDOW_NAME, imageMat1);
+	namedWindow(INPUT_IMAGE_2_WINDOW_NAME, WINDOW_NORMAL);
+	resizeWindow(INPUT_IMAGE_2_WINDOW_NAME, imageMat2.cols / DISPLAY_SCALE, imageMat2.rows / DISPLAY_SCALE);
+	imshow(INPUT_IMAGE_2_WINDOW_NAME, imageMat2);
 
 	// draw no filtered matches
-	drawFilteredMatches(imageMat1, k1kp, imageMat2, k2kp, matchesAll, NO_HGMS_WINDOW_NAME, concatImages.cols, 0);
+	drawFilteredMatches(imageMat1, k1kp, imageMat2, k2kp, matchesAll, NO_HGMS_WINDOW_NAME, imageMat1.cols, 0);
 
 	// draw GMS matches
-	drawFilteredMatches(imageMat1, k1kp, imageMat2, k2kp, gmsFilteredMatches, GMS_WINDOW_NAME, 10, concatImages.rows);
+	drawFilteredMatches(imageMat1, k1kp, imageMat2, k2kp, gmsFilteredMatches, GMS_WINDOW_NAME, 10, imageMat1.rows);
 
 	// draw HGMS matches
-	drawFilteredMatches(imageMat1, k1kp, imageMat2, k2kp, hgmsFilteredMatches, windowName, concatImages.cols, concatImages.rows);
+	drawFilteredMatches(imageMat1, k1kp, imageMat2, k2kp, hgmsFilteredMatches, windowName, imageMat1.cols, imageMat1.rows);
 
 	// wait for input
 	waitKey();
