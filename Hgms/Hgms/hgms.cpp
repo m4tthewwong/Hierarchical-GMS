@@ -69,6 +69,9 @@ namespace cv
             mvbInlierMask.assign(mNumberMatches, true);
         }
 
+        // HGMSMatcher Deconstructor - Frees resources when class is deallocated
+        // precondition: initialized HGMSMatcher class
+        // postcondition: internal structures are freed
         HGMSMatcher::~HGMSMatcher() {}
 
 		// getInlierMask: Main hierarchical filtering process
