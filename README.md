@@ -1,5 +1,5 @@
 # Hierarchical-GMS
-The purpose of this repo is to provide source code for the final project in UW Bothell CSS587. 
+The purpose of this repo is to provide source code for the final project in UW Bothell CSS587 Fall Quater 2025. 
 
 ## Folder Structure
 The folder structure is as follows:
