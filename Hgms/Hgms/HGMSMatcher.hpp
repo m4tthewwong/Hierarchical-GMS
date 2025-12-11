@@ -1,4 +1,4 @@
-// hgms.hpp
+// HGMSMatcher.hpp
 // This file implements the Hierarchical GMS (HGMS) feature matcher based on the original GMS algorithm.
 // It extends the GMS approach by introducing a hierarchical grid structure to improve matching robustness and efficiency.
 

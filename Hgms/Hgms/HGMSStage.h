@@ -26,7 +26,7 @@
 
 #include <string>
 #include "ProcessingStage.h"
-#include "hgms.hpp"
+#include "HGMSMatcher.hpp"
 
 class HGMSStage : public ProcessingStage {
 public:

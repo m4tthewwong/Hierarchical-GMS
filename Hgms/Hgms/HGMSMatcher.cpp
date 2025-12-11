@@ -1,4 +1,4 @@
-// hgms.cpp
+// HGMSMatcher.cpp
 // This file implements the Hierarchical GMS (HGMS) feature matcher based on the original GMS algorithm.
 // It extends the GMS approach by introducing a hierarchical grid structure to improve matching robustness and efficiency.
 
@@ -19,7 +19,7 @@
 * All other functions from the original GMS matcher are retained with minor adjustments to accommodate the hierarchical approach.
 */
 
-#include "hgms.hpp" // Use the newly created header
+#include "HGMSMatcher.hpp" // Use the newly created header
 #include <iostream>
 
 using namespace std;
