@@ -1,5 +1,5 @@
-# Build Instructions
-The information below provides instructions on how to build opencv with opencv_contrib which is required to execute the GMS demo application and for the resulting HGMS project. The information provided below is for Windows based machines.
+# OpenCV / OpenCV_Contrib Build Instructions
+The information below provides instructions on how to build opencv with opencv_contrib which is required to execute the GMS demo application and for the resulting HGMS project. The information provided below is for Windows based machines. OpenCV with OpenCV_Contrib is required for HGMS as the HGMSDemo utilizes GMS for performance comparison.
 
 ## Dependencies
 1. Install CMake (https://cmake.org/). This will also come bundled with Visual Studio 2022 community edition though may be an older version
